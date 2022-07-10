@@ -5,7 +5,7 @@ $Name = "Group" # Dont change this.
 $Value = (Get-ItemProperty $Path).Group
 
 if ($Value -ne $Tag) {
-    Write-Output = "Key doesn´t exist in the registry of the device. Starting remediation script ..."
+    Write-Output = "Key does not exist in the registry of the device. Starting remediation script ..."
     exit 1 # Sends Exit code 1 (Error) to Intune and runs the remediation script.
 } else {
     Write-Output = "Folder does exist and Registry Key is correct. Nothing has to be done."
