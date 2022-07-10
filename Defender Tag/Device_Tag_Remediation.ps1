@@ -1,7 +1,7 @@
 # Define parameters
-$Path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows Advanced Threat Protection\DeviceTagging"
-$Tag = "VIP"
-$Name = "Group"
+$Path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows Advanced Threat Protection\DeviceTagging" # Dont change this.
+$Tag = "VIP" # Fill in a device Tag you like. VIP is just an example.
+$Name = "Group" # Dont change this.
 
 # Create folders
 New-Item -Path $Path -Force
@@ -12,7 +12,7 @@ Set-ItemProperty -Path $Path -Name $Name -Value $Tag -Force
 $Value = (Get-ItemProperty $Path).Group
 
 if ($Value -ne $Tag) {
-    Write-Output = "Error. Couldn´t set the device tag."
+    Write-Output = "Error. Could not set the device tag."
     exit 1 # Sends Exit code 1 (Error) to Intune.
 } else {
     Write-Output = "Success."

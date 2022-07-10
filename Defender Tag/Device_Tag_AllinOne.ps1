@@ -5,7 +5,7 @@ $Name = "Group"
 $Value = (Get-ItemProperty $Path).Group
 
 if ($Value -ne $Tag) {
-    Write-Output = "Folder doesn´t exist and will be created ..."
+    Write-Output = "Folder does not exist and will be created ..."
     New-Item -Path $Path -Force
     Write-Output = "Set Registry Key ..."
     Set-ItemProperty -Path $Path -Name $Name -Value $Tag -Force
