@@ -380,11 +380,11 @@ $var_defender_changelog_button.Add_Click({
 })
 
 $var_tool_description_button.Add_Click({
-    Start-Process "www.ugurkoc.de"
+    Start-Process "https://ugurkoc.de/microsoft-defender-for-endpoint-mde-update-tool/"
 })
 
 $var_github_button.Add_Click({
-    Start-Process "www.github.com"
+    Start-Process "https://github.com/ugurkocde/Intune/tree/main/Defender%20for%20Endpoint/MDE%20-%20Update%20Tool"
 })
 
 
