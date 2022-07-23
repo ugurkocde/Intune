@@ -1,6 +1,6 @@
 # Author: Ugur Koc
 # Created: Init 21.07.2022
-# Version: 1.0
+# Version: 1.1
 # Blogpost: https://ugurkoc.de/microsoft-defender-for-endpoint-mde-update-tool/
 # Website: ugurkoc.de
 # Twitter: @ugurkocde
