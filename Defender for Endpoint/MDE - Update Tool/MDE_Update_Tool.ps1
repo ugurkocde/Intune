@@ -6,7 +6,7 @@
 # Twitter: @ugurkocde
 
 
-$version = "Version: 1.0"
+$version = "Version: 1.1"
 $author = "Ugur Koc"
 
 Add-Type -AssemblyName PresentationFramework
@@ -68,8 +68,8 @@ $xamlFile = @'
         <TextBlock x:Name="signature_version_microsoft" HorizontalAlignment="Left" Margin="174,163,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" FontSize="16" RenderTransformOrigin="0.502,0.378" FontWeight="Bold" Grid.RowSpan="2" Grid.Column="1" Height="22"/>
         <TextBlock HorizontalAlignment="Left" Margin="355,64,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="0.449,-0.94" Grid.Row="1" FontSize="14" Grid.ColumnSpan="2" Width="197" Height="19"><Run Text="Platform "/><Run Text="Version on this device: "/></TextBlock>
         <TextBlock HorizontalAlignment="Left" Margin="355,95,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="0.449,-0.94" Grid.Row="1" FontSize="14" Grid.ColumnSpan="2" Width="203" Height="19"><Run Language="de-de" Text="Platform"/><Run Text=" Version "/><Run Text="from Microsoft"/><Run Text=": "/></TextBlock>
-        <TextBlock x:Name="platform_version_device" HorizontalAlignment="Left" Margin="174,63,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" FontSize="16" FontWeight="Bold" Grid.Row="1" Grid.Column="1" Width="73" Height="22"/>
-        <TextBlock x:Name="platform_version_microsoft" HorizontalAlignment="Left" Margin="174,94,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" FontSize="16" FontWeight="Bold" Grid.Row="1" Grid.Column="1" Width="73" Height="22"/>
+        <TextBlock x:Name="platform_version_device" HorizontalAlignment="Left" Margin="174,63,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" FontSize="16" FontWeight="Bold" Grid.Row="1" Grid.Column="1" Height="22"/>
+        <TextBlock x:Name="platform_version_microsoft" HorizontalAlignment="Left" Margin="174,94,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" FontSize="16" RenderTransformOrigin="0.457,0.519" FontWeight="Bold" Grid.Row="1" Grid.Column="1" Height="23"/>
         <TextBlock HorizontalAlignment="Left" Margin="357,161,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="0.449,-0.94" Grid.Row="1" FontSize="14" Grid.ColumnSpan="2" Height="21"><Run Language="de-de" Text="Engine"/><Run Text=" Version on this device: "/></TextBlock>
         <TextBlock HorizontalAlignment="Left" Margin="357,193,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="0.449,-0.94" Grid.Row="1" FontSize="14" Grid.ColumnSpan="2" Height="21"><Run Language="de-de" Text="Engine"/><Run Text=" Version "/><Run Text="from Microsoft"/><Run Text=": "/></TextBlock>
         <TextBlock x:Name="engine_version_device" HorizontalAlignment="Left" Margin="175,160,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" FontSize="16" FontWeight="Bold" Grid.Row="1" Grid.Column="1" Height="24"/>
@@ -176,9 +176,11 @@ $CurrentVersionMicrosoft = $SignatureCurrentVersion.version
 
 # Check current version from Microsoft
 
-$Platformwebsite = Invoke-WebRequest -Uri https://docs.microsoft.com/en-us/microsoft-365/security/defender-endpoint/manage-updates-baselines-microsoft-defender-antivirus -UseBasicParsing
+$PlatformURL = "https://www.microsoft.com/en-us/wdsi/defenderupdates?ranMID=24542&ranEAID=TnL5HPStwNw&ranSiteID=TnL5HPStwNw-ywv7diDw5Zx1d5vlZitDSQ&epi=TnL5HPStwNw-ywv7diDw5Zx1d5vlZitDSQ&irgwc=1&OCID=AID2000142_aff_7593_1243925&tduid=%28ir__cdyqnmiqgckftliekk0sohzjxn2xpksmaywdhgac00%29%287593%29%281243925%29%28TnL5HPStwNw-ywv7diDw5Zx1d5vlZitDSQ%29%28%29&irclickid=_cdyqnmiqgckftliekk0sohzjxn2xpksmaywdhgac00"
 
-$PlatformPattern = "Platform: <strong>(?<Platform>.*)</strong><br>"
+$Platformwebsite = Invoke-WebRequest -Uri $PlatformURL -UseBasicParsing
+
+$PlatformPattern = "<li>Platform Version: <span>(?<Platform>.*)</span></li>" 
 
 $PlatformMatches = ($Platformwebsite | Select-String $PlatformPattern -AllMatches).Matches
 
@@ -198,7 +200,7 @@ $CurrentPlatformVersionMicrosoft = $CurrentPlatformVersion.Platform_Version
 #$CurrentPlatformVersionDevice = (Get-MpComputerStatus).AMProductVersion
 
 
-$EnginePattern = "Engine: <strong>(?<Engine>.*)</strong><br>"
+$EnginePattern = "<li>Engine Version: <span>(?<Engine>.*)</span></li>"
 
 $EngineMatches = ($Platformwebsite | Select-String $EnginePattern -AllMatches).Matches
 
