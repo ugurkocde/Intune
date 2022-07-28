@@ -326,7 +326,7 @@ $var_tool_description_button.Add_Click{
 }
 
 $var_winget2intunewin_github_button.Add_Click{
-    Start-Process "google.com"
+    Start-Process "https://github.com/ugurkocde/Intune/tree/main/winget2intunewin"
 }
 
 $var_microsoft_documentation_button.Add_Click{
