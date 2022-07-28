@@ -1,6 +1,6 @@
+# Winget2intunewin
 
+## Demo
 
+https://user-images.githubusercontent.com/43906965/181507556-af2b5150-7149-453f-850f-40c7be1a2df6.mp4
 
-![](https://github.com/ugurkocde/Intune/blob/main/winget2intunewin/winget2intunewin-Demo.gif)
-
-![](https://github.com/ugurkocde/Intune/blob/main/winget2intunewin/winget2intunewin%20-%20Demo.mp4)
