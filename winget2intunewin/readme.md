@@ -1,4 +1,4 @@
-# Winget2intunewin
+# winget2intunewin
 
 ## Demo
 
