@@ -6,6 +6,8 @@
 
 I wrote a blog post to describe and explain how the tool works: [Blog Post](https://ugurkoc.de/winget2intunewin-automatically-create-applications-for-microsoft-intune/)
 
+**This is a early version. Expect new features and bug fixes in the near time.**
+
 ## Demo
 
 https://user-images.githubusercontent.com/43906965/181507556-af2b5150-7149-453f-850f-40c7be1a2df6.mp4
