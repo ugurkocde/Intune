@@ -4,7 +4,7 @@
 
 ## Blog Post
 
-I have written a blog post to describe and explain how the tool works:
+I wrote a blog post to describe and explain how the tool works:
 
 [Blog Post](https://ugurkoc.de/winget2intunewin-automatically-create-applications-for-microsoft-intune/)
 
