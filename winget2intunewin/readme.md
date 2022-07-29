@@ -15,5 +15,5 @@ https://user-images.githubusercontent.com/43906965/181507556-af2b5150-7149-453f-
 I have written a blog post to describe and explain how the tool works:
 
 
-[Blog Post](https://www.google.de)
+[Blog Post](https://ugurkoc.de/winget2intunewin-automatically-create-applications-for-microsoft-intune/)
 
