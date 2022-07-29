@@ -326,7 +326,7 @@ $var_open_folder_button.Add_Click{
 }
 
 $var_tool_description_button.Add_Click{
-    Start-Process "google.com"
+    Start-Process "https://ugurkoc.de/winget2intunewin-automatically-create-applications-for-microsoft-intune/"
 }
 
 $var_winget2intunewin_github_button.Add_Click{
