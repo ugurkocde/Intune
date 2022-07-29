@@ -1,4 +1,8 @@
 <#
+
+Author: Ugur Koc
+Initial Release: 07/29/2022
+
 .SYNOPSIS
 Downloads a Application and converts it to a, ready to upload, .intunewin File.
 
