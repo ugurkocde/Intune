@@ -2,6 +2,7 @@
 
 Author: Ugur Koc
 Initial Release: 07/29/2022
+Last Update: 08/01/2022
 
 .SYNOPSIS
 Downloads a Application and converts it to a, ready to upload, .intunewin File.
@@ -131,7 +132,7 @@ $xaml.SelectNodes("//*[@Name]") | ForEach-Object {
 #Get-Variable var_*
 
 $var_Author_text.Text = "Ugur Koc"
-$var_Version_text.Text  = "Version 0.1"
+$var_Version_text.Text  = "Version 0.2"
 
 $global:progressPreference = 'silentlyContinue'
 
@@ -245,6 +246,13 @@ $var_app_search_button.Add_Click{
         {
             New-Item -ItemType Directory -Path $path -Force
         }    
+
+        # Delete all old files in this folder. IntuneWinAppUtil will package all files present in this specific appfolder. Thats why it has to be empty or the intunewin file will be broken.
+        If(test-path -PathType container $path)
+        {
+            Get-ChildItem -Path $path -File | Remove-Item -Verbose
+            Write-Log -text "$(Get-TimeStamp) Deleted old files in the $AppName - Folder"
+        }   
     }   
     $var_output_box.ScrollToEnd()
 }
@@ -287,14 +295,31 @@ $var_download_button.Add_Click{
     $setupfile_path = $path + "\" + $download_app_filename
     
     $var_output_box.AppendText("`r`n$(Get-TimeStamp) Starting the download of $AppName")
-    Write-Log -text "$(Get-TimeStamp) Starting the download of $AppName"
+    Write-Log -text "$(Get-TimeStamp) Starting download of $AppName"
 
-    $download_app = (Start-Process PowerShell -Argumentlist "Invoke-WebRequest -Uri $download_url_trim -OutFile '$setupfile_path'" -Wait)
+    $download_app_job = @{
+        Name                 = 'DownloadJob'
+        ScriptBlock          = {$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri $args[0] -OutFile $args[1]}
+    }
 
-    $var_output_box.AppendText("`r`n$(Get-TimeStamp) Finished downloading $AppName")
-    Write-Log -text "$(Get-TimeStamp) Finished downloading $AppName"
+    Start-Job @download_app_job -Argumentlist $download_url_trim, $setupfile_path
 
-    $outputfolder_path = "C:\winget2intunewin\" + "$AppName" -replace '\s',''
+    while ((Get-Job -Name 'DownloadJob').State -eq 'Running') {
+        $download_size_progress = $((Get-ChildItem $setupfile_path).Length)/1MB
+        Write-Log -text "$(Get-TimeStamp) Download in progress: $([math]::round($download_size_progress,2)) MB"
+        sleep 1
+    }
+
+    if((Get-Job -Name 'DownloadJob').State -eq 'Completed'){
+        $download_size_final = $((Get-ChildItem $setupfile_path).Length)/1MB
+        Test-Path -Path $setupfile_path
+        $var_output_box.AppendText("`r`n$(Get-TimeStamp) Finished downloading $AppName$download_app_extension. Size: $([math]::round($download_size_final,2)) MB")
+        Write-Log -text "$(Get-TimeStamp) Finished downloading $AppName$download_app_extension. Size: $([math]::round($download_size_final,2)) MB"
+        
+        # Open Output Folder after completing download.
+        $outputfolder_path = "C:\winget2intunewin\" + "$AppName" -replace '\s',''
+        Start-Process $outputfolder_path
+    }
 
     $intunewin_path = (Get-ChildItem "C:\winget2intunewin\" | Where-Object {$_.name -like "IntuneWinAppUtil.exe"}).Name
 
@@ -303,6 +328,7 @@ $var_download_button.Add_Click{
     $var_output_box.AppendText("`r`n$(Get-TimeStamp) Creating IntuneWin: Started")
     Write-Log -text "$(Get-TimeStamp) Creating IntuneWin: Started"
 
+    # Create Intunewin File out of the downloaded executable from the steps before
     $create_intunewin_app = (Start-Process PowerShell -windowstyle hidden -Argumentlist "cd 'C:\winget2intunewin\'; $run" -Wait)
 
     $var_output_box.AppendText("`r`n$(Get-TimeStamp) Creating IntuneWin: Finished")
