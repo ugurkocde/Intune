@@ -1,8 +1,8 @@
+#!/bin/bash
+
 # Upload custom inventory data to Azure Log Analytics
 # This script is intended to be used with Microsoft Intune for macOS
 # Author: Ugur Koc, Twitter: @ugurkocde
-
-#!/bin/bash
 
 # Azure Log Analytics Workspace details
 # Do not forget to replace the workspaceId and sharedKey variables below with your actual values
