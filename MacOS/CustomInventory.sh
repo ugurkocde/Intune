@@ -56,12 +56,12 @@ LastBootFormatted=$(date -jf "%s" "$LastBoot" +"%m/%d/%Y, %I:%M:%S %p")
 # Get Model
 Model=$(system_profiler SPHardwareDataType | awk -F: '/Model Name/ {print $2}' | sed 's/^ *//')
 
-# Get DeviceID
+# Extract Device ID
 LOG_DIR="$HOME/Library/Logs/Microsoft/Intune"
-DEVICE_ID=$(grep -o 'DeviceId: [^ ]*' "$LOG_DIR"/*.log | awk '{print $NF}' | sort | uniq)
+DEVICE_ID=$(grep 'DeviceId:' "$LOG_DIR"/*.log | awk -F ': ' '{print $2}' | sort | uniq)
 
-# Get AAD Tenant ID
-TENANT_ID=$(grep -o 'AADTenantId: [^ ]*' "$LOG_DIR"/*.log | awk '{print $NF}' | sort | uniq)
+# Extract Entra Tenant ID
+TENANT_ID=$(grep 'AADTenantID:' "$LOG_DIR"/*.log | awk -F ': ' '{print $2}' | sort | uniq)
 
 # Get Local Admins
 LocalAdmins=$(dscl . -read /Groups/admin GroupMembership | awk '{for (i=2; i<=NF; i++) printf $i " "; print ""}')
@@ -83,7 +83,7 @@ jsonData="{ \
   \"StorageFree\": \"${Storage_Free}\", \
   \"LastBoot\": \"${LastBootFormatted}\", \
   \"DeviceID\": \"${DEVICE_ID}\", \
-  \"TenantID\": \"${TENANT_ID}\", \
+  \"EntraTenantID\": \"${TENANT_ID}\", \
   \"LocalAdmins\": \"${LocalAdmins}\" \
 }"
 
