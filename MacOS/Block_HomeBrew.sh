@@ -12,7 +12,10 @@ fi
 
 # Check if Homebrew directory exists
 if [ -d "$HOMEBREW_PATH" ]; then
-    echo "$HOMEBREW_PATH exists. Setting permissions."
+    echo "$HOMEBREW_PATH exists. Uninstalling Homebrew and setting permissions."
+    # Uninstall Homebrew
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+    echo "Homebrew uninstalled."
     # Change ownership to root and set permissions to root only
     sudo chown -R root:wheel "$HOMEBREW_PATH"
     sudo chmod -R 700 "$HOMEBREW_PATH"
