@@ -1,3 +1,19 @@
+<#
+.SYNOPSIS
+    This PowerShell script connects to the Microsoft Graph API and retrieves all scope tags for all Objects in Intune.
+.DESCRIPTION
+    This script provides functions to fetch and process information related to managed devices, device configurations,
+    compliance policies, shell scripts, configuration policies, and mobile apps from Microsoft Graph API. It also supports
+    exporting the data to different formats.
+    
+    To use this script, you need to fill in your App ID, Tenant ID, and Secret in the appropriate variables.
+
+    For more details and setup instructions, refer to the accompanying documentation.
+
+.AUTHOR
+    Ugur Koc
+#>
+
 # Step 1: Authentication to Microsoft Graph (Please fill in your App ID, Tenant ID, and Secret)
 
 # Recommended: Use App Registration to Authenticate to Microsoft Graph
@@ -9,7 +25,7 @@ $appid = '' # App ID of the App Registration
 $tenantid = '' # Tenant ID of your EntraID
 $secret = '' # Secret of the App Registration
  
-$body =  @{
+$body = @{
     Grant_Type    = "client_credentials"
     Scope         = "https://graph.microsoft.com/.default"
     Client_Id     = $appid
@@ -66,8 +82,8 @@ function Get-ManagedDevices {
 
             $devices += New-Object PSObject -Property @{
                 DeviceName = $device.deviceName  
-                DeviceId = $device.id             
-                ScopeTags = ($scopeTagNames -join ", ")
+                DeviceId   = $device.id             
+                ScopeTags  = ($scopeTagNames -join ", ")
             }
         }
 
@@ -75,7 +91,8 @@ function Get-ManagedDevices {
         if ($response.'@odata.nextLink') {
             $devices += Get-ManagedDevices -Uri $response.'@odata.nextLink'
         }
-    } catch {
+    }
+    catch {
         Write-Host "Error fetching devices: $($_.Exception.Message)"
     }
 
@@ -97,9 +114,9 @@ function Get-DeviceConfigDetails {
     }
 
     [PSCustomObject]@{
-        Type = "Device Configuration"
-        Name = $DeviceConfig.displayName
-        Id = $DeviceConfig.id
+        Type      = "Device Configuration"
+        Name      = $DeviceConfig.displayName
+        Id        = $DeviceConfig.id
         #RoleScopeTagIds = $response.roleScopeTagIds -join ', '
         ScopeTags = $scopeTagNames -join ', '
     }
@@ -120,9 +137,9 @@ function Get-DeviceCompliancePolicyDetails {
     }
 
     [PSCustomObject]@{
-        Type = "Device Compliance Policy"
-        Name = $DeviceCompliancePolicy.displayName
-        Id = $DeviceCompliancePolicy.id
+        Type      = "Device Compliance Policy"
+        Name      = $DeviceCompliancePolicy.displayName
+        Id        = $DeviceCompliancePolicy.id
         #RoleScopeTagIds = $response.roleScopeTagIds -join ', '
         ScopeTags = $scopeTagNames -join ', '
     }
@@ -143,9 +160,9 @@ function Get-DeviceShellScriptDetails {
     }
 
     [PSCustomObject]@{
-        Type = "Device Shell Script"
-        Name = $DeviceShellScript.displayName
-        Id = $DeviceShellScript.id
+        Type      = "Device Shell Script"
+        Name      = $DeviceShellScript.displayName
+        Id        = $DeviceShellScript.id
         #RoleScopeTagIds = $response.roleScopeTagIds -join ', '
         ScopeTags = $scopeTagNames -join ', '
     }
@@ -166,12 +183,12 @@ function Get-ConfigurationPolicyDetails {
     }
 
     [PSCustomObject]@{
-        Type = "Configuration Policy"
-        Name = $ConfigurationPolicy.name
-        Id = $ConfigurationPolicy.id
+        Type      = "Configuration Policy"
+        Name      = $ConfigurationPolicy.name
+        Id        = $ConfigurationPolicy.id
         #RoleScopeTagIds = $response.roleScopeTagIds -join ', '
         ScopeTags = $scopeTagNames -join ', '
-        Platform = $ConfigurationPolicy.platforms
+        Platform  = $ConfigurationPolicy.platforms
     }
 }
 
@@ -198,12 +215,12 @@ function Get-MobileAppDetails {
             }
 
             $mobileAppDetails += [PSCustomObject]@{
-                Type       = "Application"
-                Name       = $appDetailsResponse.displayName
-                AppId      = $appDetailsResponse.id
-                Assigned   = $appDetailsResponse.isAssigned
+                Type      = "Application"
+                Name      = $appDetailsResponse.displayName
+                AppId     = $appDetailsResponse.id
+                Assigned  = $appDetailsResponse.isAssigned
                 #RoleScopeTagIds = $appDetailsResponse.roleScopeTagIds -join ', '
-                ScopeTags  = ($scopeTagNames -join ', ')
+                ScopeTags = ($scopeTagNames -join ', ')
             }
         }
         $Uri = $response.'@odata.nextLink'
@@ -235,9 +252,9 @@ $results += $mobileApps
 # Process and Combine Device Details with Other Results
 foreach ($device in $allDevices) {
     $deviceResult = [PSCustomObject]@{
-        Type = "Managed Device"
-        Name = $device.DeviceName
-        DeviceId = $device.DeviceId
+        Type      = "Managed Device"
+        Name      = $device.DeviceName
+        DeviceId  = $device.DeviceId
         ScopeTags = $device.ScopeTags
     }
     $results += $deviceResult
