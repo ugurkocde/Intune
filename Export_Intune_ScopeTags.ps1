@@ -14,6 +14,22 @@
     Ugur Koc
 #>
 
+# Check and Install Microsoft.Graph.Authentication Module as prerequisite
+$moduleName = "Microsoft.Graph.Authentication"
+$module = Get-Module -Name $moduleName -ListAvailable
+
+if (-not $module) {
+    Write-Host "The module '$moduleName' is not installed. Attempting to install..."
+    Install-Module -Name $moduleName -Force -Scope CurrentUser
+    $module = Get-Module -Name $moduleName -ListAvailable
+    if (-not $module) {
+        Write-Host "Failed to install the module '$moduleName'. Script will exit."
+        exit
+    }
+}
+
+Write-Host "The module '$moduleName' is installed."
+
 # Step 1: Authentication to Microsoft Graph (Please fill in your App ID, Tenant ID, and Secret)
 
 # Recommended: Use App Registration to Authenticate to Microsoft Graph
