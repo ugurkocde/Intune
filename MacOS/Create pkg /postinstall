@@ -1,0 +1,78 @@
+#!/bin/zsh
+
+# Define the log file
+logFileName="deploy_teams_backgrounds.log"
+logandmetadir="/var/tmp/"
+#logFile="$logandmetadir/$logFileName"
+logFile="/var/tmp/deploy_teams_backgrounds.log"
+
+# Check if the log directory has been created
+if [ -d $logandmetadir ]; then
+    # Already created
+    echo "$(date) | Log directory already exists - $logandmetadir"
+else
+    # Creating Metadirectory
+    echo "$(date) | creating log directory - $logandmetadir"
+    mkdir -p $logandmetadir
+fi
+
+# Function to log messages
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" >>"$logFile"
+}
+
+# Start logging
+log "Starting Teams background deployment script."
+
+# Get the currently logged-in user
+loggedInUser=$(stat -f '%Su' /dev/console)
+log "Logged-in user: $loggedInUser"
+
+# Get the home directory of the logged-in user
+loggedInUserHome=$(dscl . -read /Users/"$loggedInUser" NFSHomeDirectory | cut -d " " -f 2)
+log "Home directory of logged-in user: $loggedInUserHome"
+
+# Path to the Backgrounds folder in the package
+packagePath="/var/tmp/Backgrounds"
+log "Package path: $packagePath"
+
+# Define the output path for Teams Backgrounds
+outputPath="${loggedInUserHome}/Library/Containers/com.microsoft.teams2/Data/Library/Application Support/Microsoft/MSTeams/Backgrounds/Uploads"
+log "Output path: $outputPath"
+
+# Check if the output directory exists; if not, create it
+if [[ ! -d "$outputPath" ]]; then
+    mkdir -p "$outputPath"
+    log "Created directory: $outputPath"
+else
+    log "Directory already exists: $outputPath"
+fi
+
+# Loop through all PNG and JPG images in the Backgrounds folder
+for image in "$packagePath"/*.{png,jpg}; do
+
+    # Skip if the file doesn't exist
+    if [[ ! -f "$image" ]]; then
+        log "Skipping non-existent file: $image"
+        continue
+    fi
+
+    # Generate a new GUID
+    guid=$(uuidgen)
+
+    # Determine file extension for the output
+    ext="${image##*.}"
+    outputFile="$outputPath/$guid.$ext"
+
+    # Resize main image to 1920x1080
+    log "Creating Background for $image"
+    sips -z 1080 1920 "$image" --out "$outputFile"
+
+    # Resize thumbnail to 220x158 and save as PNG
+    thumbName="$outputPath/${guid}_thumb.png"
+    log "Creating Background Thumbnail for $image"
+    sips -z 158 220 "$image" --out "$thumbName"
+
+done
+
+log "Teams background deployment script completed."
