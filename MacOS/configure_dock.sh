@@ -7,6 +7,8 @@
 # Version: 1.0
 # Date: 2024-05-23
 # Author: Ugur Koc
+#
+# More Scripts: https://github.com/microsoft/shell-intune-samples/tree/master
 
 # Log file location
 log="$HOME/configure_dock.log"
@@ -16,6 +18,21 @@ add_to_dock() {
     app_path=$1
     echo "Adding $app_path to the Dock..." | tee -a "$log"
     defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>${app_path}</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
+}
+
+# Function to check and set the correct path for Microsoft Teams (https://github.com/microsoft/shell-intune-samples/blob/master/macOS/Config/Dock/addAppstoDock.sh)
+check_and_set_installed_msteams_path() {
+    if [[ -a "/Applications/Microsoft Teams.app" ]]; then
+        echo "/Applications/Microsoft Teams.app"
+    elif [[ -a "/Applications/Microsoft Teams classic.app" ]]; then
+        echo "/Applications/Microsoft Teams classic.app"
+    elif [[ -a "/Applications/Microsoft Teams (work or school).app" ]]; then
+        echo "/Applications/Microsoft Teams (work or school).app"
+    elif [[ -a "/Applications/Microsoft Teams (work preview).app" ]]; then
+        echo "/Applications/Microsoft Teams (work preview).app"
+    else
+        echo ""
+    fi
 }
 
 # Clear the existing Dock apps and log the action
@@ -30,7 +47,7 @@ defaults write com.apple.dock persistent-others -array
 apps=(
     "/System/Applications/Launchpad.app"
     "/Applications/Microsoft Edge.app"
-    "/Applications/Microsoft Teams (work or school).app"
+    "$(check_and_set_installed_msteams_path)"
     "/Applications/Microsoft Outlook.app"
     "/Applications/Company Portal.app"
     "/Library/Application Support/Microsoft/MAU2.0/Microsoft AutoUpdate.app"
@@ -39,7 +56,11 @@ apps=(
 
 # Add each application to the Dock and log the action
 for app in "${apps[@]}"; do
-    add_to_dock "$app"
+    if [[ -n "$app" ]]; then
+        add_to_dock "$app"
+    else
+        echo "Skipping empty app path." | tee -a "$log"
+    fi
 done
 
 # Restart the Dock to apply changes and log the action
