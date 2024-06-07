@@ -2,7 +2,8 @@
 autoinstall:
   version: 1
   user-data:
-    users: ['']
+    users: [""]
+    disable_root: false
   ssh:
     install-server: no
   storage:
@@ -13,8 +14,6 @@ autoinstall:
   locale: de_DE
   packages:
     - ubuntu-desktop
-  user-data:
-    disable_root: false
   late-commands:
     - curtin in-target --target=/target -- sh -c 'echo "test ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/test'
     - curtin in-target --target=/target -- apt-get update
