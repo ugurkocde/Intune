@@ -19,18 +19,9 @@ autoinstall:
     - curtin in-target --target=/target -- apt-get update
     - curtin in-target --target=/target -- apt-get upgrade -y
     - curtin in-target --target=/target -- apt-get install -y curl gpg
-    - curtin in-target --target=/target -- sh -c 'curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /target/usr/share/keyrings/microsoft.gpg'
+    - curtin in-target --target=/target -- curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /target/tmp/microsoft.gpg
+    - curtin in-target --target=/target -- install -o root -g root -m 644 /target/tmp/microsoft.gpg /usr/share/keyrings/microsoft.gpg
     - curtin in-target --target=/target -- sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" > /target/etc/apt/sources.list.d/microsoft-ubuntu-jammy-prod.list'
+    - curtin in-target --target=/target -- rm /target/tmp/microsoft.gpg
     - curtin in-target --target=/target -- apt-get update
     - curtin in-target --target=/target -- apt-get install -y intune-portal
-    - curtin in-target --target=/target -- mkdir -p /target/etc/skel/.config/autostart
-    - curtin in-target --target=/target -- sh -c 'cat > /target/etc/skel/.config/autostart/intune.desktop <<EOF
-[Desktop Entry]
-Type=Application
-Exec=/usr/bin/intune-portal
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-Name=Microsoft Intune
-Comment=Start Microsoft Intune on login
-EOF'
