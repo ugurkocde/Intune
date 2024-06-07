@@ -3,7 +3,7 @@ autoinstall:
   version: 1
   identity:
     hostname: ubuntu-client
-    password: test
+    password: "$6$rounds=4096$5pLQJvKz9Dzi6ZfX$Tsu1L9M/2F/WQs1I4R4."
     username: test
   ssh:
     install-server: no
@@ -18,18 +18,17 @@ autoinstall:
     - ubuntu-desktop
   user-data:
     disable_root: false
-
-late-commands:
-  - curtin in-target --target=/target -- sh -c 'echo "test ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/test'
-  - curtin in-target --target=/target -- mkdir -p /target/home/test/.config/autostart
-  - curtin in-target --target=/target -- sh -c 'cat > /target/home/test/.config/autostart/update-upgrade.desktop <<EOF
-  [Desktop Entry]
-  Type=Application
-  Exec=sh -c "sudo apt-get update && sudo apt-get upgrade -y && rm -f \$HOME/.config/autostart/update-upgrade.desktop"
-  Hidden=false
-  NoDisplay=false
-  X-GNOME-Autostart-enabled=true
-  Name=Update and Upgrade
-  Comment=Run apt-get update and upgrade once at first login
-  EOF'
-  - curtin in-target --target=/target -- chown -R 1000:1000 /target/home/test/.config/autostart
+  late-commands:
+    - curtin in-target --target=/target -- sh -c 'echo "test ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/test'
+    - curtin in-target --target=/target -- mkdir -p /target/home/test/.config/autostart
+    - curtin in-target --target=/target -- sh -c 'cat > /target/home/test/.config/autostart/update-upgrade.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Exec=sh -c "sudo apt-get update && sudo apt-get upgrade -y && rm -f \$HOME/.config/autostart/update-upgrade.desktop"
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Update and Upgrade
+Comment=Run apt-get update and upgrade once at first login
+EOF'
+    - curtin in-target --target=/target -- chown -R 1000:1000 /target/home/test/.config/autostart
