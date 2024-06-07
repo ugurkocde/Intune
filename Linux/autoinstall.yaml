@@ -15,7 +15,6 @@ autoinstall:
   packages:
     - ubuntu-desktop
   late-commands:
-    - curtin in-target --target=/target -- sh -c 'echo "test ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/test'
     - curtin in-target --target=/target -- apt-get update
     - curtin in-target --target=/target -- apt-get upgrade -y
     - curtin in-target --target=/target -- apt-get install -y curl gpg
