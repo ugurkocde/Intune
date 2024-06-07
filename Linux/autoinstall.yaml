@@ -12,7 +12,6 @@ autoinstall:
       name: direct
   keyboard:
     layout: de
-    variant: de
   locale: de_DE
   packages:
     - ubuntu-desktop
