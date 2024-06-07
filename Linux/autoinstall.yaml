@@ -1,10 +1,8 @@
 #cloud-config
 autoinstall:
   version: 1
-  identity:
-    hostname: ubuntu-client
-    password: "$6$rounds=4096$5pLQJvKz9Dzi6ZfX$Tsu1L9M/2F/WQs1I4R4."
-    username: test
+  user-data:
+    users: ['']
   ssh:
     install-server: no
   storage:
