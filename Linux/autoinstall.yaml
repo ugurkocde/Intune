@@ -24,3 +24,4 @@ autoinstall:
     - curtin in-target --target=/target -- rm /target/tmp/microsoft.gpg
     - curtin in-target --target=/target -- apt-get update
     - curtin in-target --target=/target -- apt-get install -y intune-portal
+    - curtin in-target --target=/target -- reboot
