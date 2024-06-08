@@ -5,6 +5,9 @@ IMAGE_URL="https://raw.githubusercontent.com/ugurkocde/Intune/main/Linux/media/T
 IMAGE_NAME="new_background.jpg"
 IMAGE_PATH="$HOME/Pictures/$IMAGE_NAME"
 
+# Create the Pictures directory if it doesn't exist
+mkdir -p "$HOME/Pictures"
+
 # Download the image
 wget -O "$IMAGE_PATH" "$IMAGE_URL"
 
