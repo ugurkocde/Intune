@@ -7,58 +7,9 @@ autoinstall:
   ssh:
     install-server: no
   storage:
-    config:
-      - id: disk0
-        type: disk
-        match:
-          size: largest
-        ptable: gpt
-        wipe: superblock
-        preserve: false
-        name: ""
-        grub_device: true
-        setup:
-          preserve: false
-          ptable: gpt
-      - id: disk0-part1
-        type: partition
-        number: 1
-        device: disk0
-        size: 512M
-        flag: boot
-      - id: disk0-part2
-        type: partition
-        number: 2
-        device: disk0
-        size: -1
-      - id: luks0
-        type: luks
-        device: disk0-part2
-        key: "testpassword"
-      - id: vg0
-        type: lvm_volgroup
-        devices: [luks0]
-      - id: root
-        type: lvm_partition
-        volgroup: vg0
-        size: -1
-        flag: root
-      - id: format_root
-        type: format
-        fstype: ext4
-        volume: root
-      - id: mount_root
-        type: mount
-        device: format_root
-        path: /
-      - id: format_boot
-        type: format
-        fstype: ext4
-        volume: disk0-part1
-      - id: mount_boot
-        type: mount
-        device: format_boot
-        path: /boot
+    layout:
+      name: lvm
+      password: ubuntu
   keyboard:
     layout: de
   locale: de_DE
