@@ -7,21 +7,62 @@ autoinstall:
   ssh:
     install-server: no
   storage:
-    layout:
-      name: direct
+    config:
+      - id: disk0
+        type: disk
+        match:
+          size: largest
+        ptable: gpt
+        wipe: superblock
+        preserve: false
+        name: ""
+        grub_device: true
+        setup:
+          preserve: false
+          ptable: gpt
+      - id: disk0-part1
+        type: partition
+        number: 1
+        device: disk0
+        size: 512M
+        flag: boot
+      - id: disk0-part2
+        type: partition
+        number: 2
+        device: disk0
+        size: -1
+      - id: luks0
+        type: luks
+        device: disk0-part2
+        key: "testpassword"
+      - id: vg0
+        type: lvm_volgroup
+        devices: [luks0]
+      - id: root
+        type: lvm_partition
+        volgroup: vg0
+        size: -1
+        flag: root
+      - id: format_root
+        type: format
+        fstype: ext4
+        volume: root
+      - id: mount_root
+        type: mount
+        device: format_root
+        path: /
+      - id: format_boot
+        type: format
+        fstype: ext4
+        volume: disk0-part1
+      - id: mount_boot
+        type: mount
+        device: format_boot
+        path: /boot
   keyboard:
     layout: de
   locale: de_DE
   packages:
     - ubuntu-desktop
   late-commands:
-    - curtin in-target --target=/target -- apt-get update
-    - curtin in-target --target=/target -- apt-get upgrade -y
-    - curtin in-target --target=/target -- apt-get install -y curl gpg
-    - curtin in-target --target=/target -- curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /target/tmp/microsoft.gpg
-    - curtin in-target --target=/target -- install -o root -g root -m 644 /target/tmp/microsoft.gpg /usr/share/keyrings/microsoft.gpg
-    - curtin in-target --target=/target -- sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" > /target/etc/apt/sources.list.d/microsoft-ubuntu-jammy-prod.list'
-    - curtin in-target --target=/target -- rm /target/tmp/microsoft.gpg
-    - curtin in-target --target=/target -- apt-get update
-    - curtin in-target --target=/target -- apt-get install -y intune-portal
     - curtin in-target --target=/target -- reboot
