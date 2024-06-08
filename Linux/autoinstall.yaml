@@ -24,5 +24,20 @@ autoinstall:
       classic: true
   late-commands:
     - curtin in-target --target=/target -- wget -O /usr/share/backgrounds/my_background.jpg https://raw.githubusercontent.com/ugurkocde/Intune/main/Linux/media/Thermenresort_Loipersdorf.jpg
-    - curtin in-target --target=/target -- /bin/bash -c 'gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/my_background.jpg"'
+    - curtin in-target --target=/target -- /bin/bash -c 'echo "[Unit]
+Description=Set Desktop Background
+After=graphical.target
+
+[Service]
+ExecStart=/usr/local/bin/set-background.sh
+Type=oneshot
+
+[Install]
+WantedBy=default.target" > /etc/systemd/system/set-background.service'
+    - curtin in-target --target=/target -- /bin/bash -c 'echo "#!/bin/bash
+for user in \$(ls /home); do
+  sudo -u \$user DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/\$(id -u \$user)/bus gsettings set org.gnome.desktop.background picture-uri \"file:///usr/share/backgrounds/my_background.jpg\"
+done" > /usr/local/bin/set-background.sh'
+    - curtin in-target --target=/target -- chmod +x /usr/local/bin/set-background.sh
+    - curtin in-target --target=/target -- systemctl enable set-background.service
     - curtin in-target --target=/target -- reboot
