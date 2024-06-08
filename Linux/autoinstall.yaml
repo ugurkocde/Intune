@@ -17,6 +17,10 @@ autoinstall:
     - ubuntu-desktop
   snaps:
     - name: code
-    - name: Neovim
+      classic: true
+    - name: postman
+      classic: false
+    - name: powershell
+      classic: true
   late-commands:
     - curtin in-target --target=/target -- reboot
