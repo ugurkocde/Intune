@@ -23,7 +23,7 @@ autoinstall:
     - name: powershell
       classic: true
   late-commands:
-    - curtin in-target --target=/target -- wget -O /target/root/postinstall.sh https://raw.githubusercontent.com/yourusername/yourrepo/main/path/to/postinstall.sh
+    - curtin in-target --target=/target -- wget -O /target/root/postinstall.sh https://raw.githubusercontent.com/ugurkocde/Intune/main/Linux/postinstall.sh
     - curtin in-target --target=/target -- chmod +x /target/root/postinstall.sh
     - curtin in-target --target=/target -- /bin/bash /target/root/postinstall.sh
     - curtin in-target --target=/target -- reboot
