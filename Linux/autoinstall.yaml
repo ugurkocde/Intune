@@ -24,6 +24,6 @@ autoinstall:
       classic: true
   late-commands:
     - wget -O /target/postinstall.sh https://raw.githubusercontent.com/ugurkocde/Intune/main/Linux/postinstall.sh
-    - curtin in-target -- bash /postinstall.sh
+    - curtin in-target -- bash /target/postinstall.sh
     - rm /target/postinstall.sh
     - curtin in-target --target=/target -- reboot
