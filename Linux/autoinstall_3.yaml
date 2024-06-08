@@ -15,8 +15,5 @@ autoinstall:
   locale: de_DE
   packages:
     - ubuntu-desktop
-  snaps:
-    - name: code
-    - name: Neovim
   late-commands:
     - curtin in-target --target=/target -- reboot
