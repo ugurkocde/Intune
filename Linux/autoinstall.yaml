@@ -4,8 +4,6 @@ autoinstall:
   user-data:
     users: [""]
     disable_root: false
-  ssh:
-    install-server: no
   storage:
     layout:
       name: lvm
@@ -23,7 +21,6 @@ autoinstall:
     - name: powershell
       classic: true
   late-commands:
-    - wget -O /target/postinstall.sh https://raw.githubusercontent.com/ugurkocde/Intune/main/Linux/postinstall.sh
-    - curtin in-target -- bash /target/postinstall.sh
-    - rm /target/postinstall.sh
+    - curtin in-target --target=/target -- apt-get update
+    - curtin in-target --target=/target -- apt-get upgrade -y
     - curtin in-target --target=/target -- reboot
