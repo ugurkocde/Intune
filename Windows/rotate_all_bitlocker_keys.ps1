@@ -24,7 +24,7 @@
     https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-rotatebitlockerkeys?view=graph-rest-beta
 
 .EXAMPLE
-    .\rotate-bitlocker-keys.ps1
+    .\rotate_all_bitlocker_keys.ps1
 
 .NOTES
     Disclaimer: This script is provided AS IS without warranty of any kind. Use it at your own risk.
