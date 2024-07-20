@@ -32,41 +32,6 @@
     Disclaimer: This script is provided AS IS without warranty of any kind. Use it at your own risk.
 #>
 
-<#
-.SYNOPSIS
-    Rotates BitLocker keys for all Windows devices in Intune using Graph API.
-
-.DESCRIPTION
-    This script connects to Intune via Graph API and rotates the BitLocker keys for all managed Windows devices.
-
-.NOTES
-    Author: Ugur Koc
-    GitHub: https://github.com/ugurkocde
-    Twitter: https://x.com/UgurKocDe
-    LinkedIn: https://www.linkedin.com/in/ugurkocde/
-
-    Version: 1.0
-    Created: [Insert creation date]
-    Last Updated: [Insert last update date]
-
-.REQUIREMENTS
-    - PowerShell 5.1 or later
-    - Microsoft.Graph.Authentication module
-    - Microsoft.Graph.DeviceManagement module
-
-.LINK
-    https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-rotatebitlockerkeys?view=graph-rest-beta
-
-.EXAMPLE
-    .\rotate-bitlocker-keys.ps1
-
-.NOTES
-    EntraID App Registration Permission (Least privileged permissions):
-    - DeviceManagementManagedDevices.ReadWrite.All
-
-    Disclaimer: This script is provided AS IS without warranty of any kind. Use it at your own risk.
-#>
-
 # Prerequisites
 $appid = '' # App ID of the App Registration
 $tenantid = '' # Tenant ID of your EntraID
