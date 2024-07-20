@@ -13,11 +13,12 @@
 
     Version: 1.0
     Created: 07/20/2024
+    Version: 1.1 (07/20/2024)
+    - Changed Authentication to Connect-MgGraph -Scopes only. 
 
 .REQUIREMENTS
     - PowerShell 5.1 or later
     - Microsoft.Graph.Authentication module
-    - Microsoft.Graph.DeviceManagement module
 
 .LINK
     https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-rotatebitlockerkeys?view=graph-rest-beta
@@ -26,32 +27,10 @@
     .\rotate-bitlocker-keys.ps1
 
 .NOTES
-    EntraID App Registration Permission (Least privileged permissions):
-    - DeviceManagementManagedDevices.ReadWrite.All, Details: https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-rotatebitlockerkeys?view=graph-rest-beta
-
     Disclaimer: This script is provided AS IS without warranty of any kind. Use it at your own risk.
 #>
 
-# Prerequisites
-$appid = '' # App ID of the App Registration
-$tenantid = '' # Tenant ID of your EntraID
-$secret = '' # Secret of the App Registration
-
-$body = @{
-    Grant_Type    = "client_credentials"
-    Scope         = "https://graph.microsoft.com/.default"
-    Client_Id     = $appid
-    Client_Secret = $secret
-}
-
-$connection = Invoke-RestMethod `
-    -Uri https://login.microsoftonline.com/$tenantid/oauth2/v2.0/token `
-    -Method POST `
-    -Body $body
-
-$token = $connection.access_token
-$secureToken = ConvertTo-SecureString $token -AsPlainText -Force
-Connect-MgGraph -AccessToken $secureToken -NoWelcome
+Connect-MgGraph -Scopes "DeviceManagementManagedDevices.ReadWrite.All"
 
 # Get all managed devices from Intune
 $managedDevices = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=id,deviceName,operatingSystem"
