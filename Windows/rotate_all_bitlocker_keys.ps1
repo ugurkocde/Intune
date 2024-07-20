@@ -32,30 +32,32 @@
 
 Connect-MgGraph -Scopes "DeviceManagementManagedDevices.ReadWrite.All" -NoWelcome
 
-# Get all managed devices from Intune
-$managedDevices = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=id,deviceName,operatingSystem"
+# Get all managed Windows devices from Intune with pagination
+$managedDevices = @()
+$nextLink = "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=id,deviceName,operatingSystem&`$filter=operatingSystem eq 'Windows'"
 
-foreach ($device in $managedDevices.value) {
+# This loop will get all managed devices from Intune with pagination
+while ($nextLink) {
+    $response = Invoke-MgGraphRequest -Method GET -Uri $nextLink
+    $managedDevices += $response.value
+    $nextLink = $response.'@odata.nextLink'
+}
+
+foreach ($device in $managedDevices) {
     $deviceId = $device.id
     $deviceName = $device.deviceName
-    $operatingSystem = $device.operatingSystem
 
     Write-Host "Processing device: $deviceName" -ForegroundColor Cyan
 
-    if ($operatingSystem -like "*Windows*") {
-        # Attempt to rotate the BitLocker keys
-        try {
-            $rotatedKey = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/deviceManagement/managedDevices('$deviceId')/rotateBitLockerKeys" -ContentType "application/json"
+    # Attempt to rotate the BitLocker keys
+    try {
+        Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/deviceManagement/managedDevices('$deviceId')/rotateBitLockerKeys" -ContentType "application/json"
 
-            Write-Host "Successfully rotated BitLocker keys for device $deviceName" -ForegroundColor Green
-        }
-        catch {
-            Write-Host "Failed to rotate BitLocker keys for device $deviceName" -ForegroundColor Red
-            Write-Host "Error: $_" -ForegroundColor Red
-        }
+        Write-Host "Successfully rotated BitLocker keys for device $deviceName" -ForegroundColor Green
     }
-    else {
-        Write-Host "Skipping non-Windows device: $deviceName" -ForegroundColor Yellow
+    catch {
+        Write-Host "Failed to rotate BitLocker keys for device $deviceName" -ForegroundColor Red
+        Write-Host "Error: $_" -ForegroundColor Red
     }
 }
 
