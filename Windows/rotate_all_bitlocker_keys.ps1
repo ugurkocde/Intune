@@ -30,7 +30,7 @@
     Disclaimer: This script is provided AS IS without warranty of any kind. Use it at your own risk.
 #>
 
-Connect-MgGraph -Scopes "DeviceManagementManagedDevices.ReadWrite.All"
+Connect-MgGraph -Scopes "DeviceManagementManagedDevices.ReadWrite.All" -NoWelcome
 
 # Get all managed devices from Intune
 $managedDevices = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=id,deviceName,operatingSystem"
