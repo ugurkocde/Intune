@@ -14,7 +14,10 @@
     Version: 1.0
     Created: 07/20/2024
     Version: 1.1 (07/20/2024)
-    - Changed Authentication to Connect-MgGraph -Scopes only. 
+    - Changed Authentication to Connect-MgGraph -Scopes only.
+    Version: 1.2 (07/20/2024)
+    - Added pagination.
+    - Moved the OS Filter to the top, to avoid unnecessary API calls. 
 
 .REQUIREMENTS
     - PowerShell 5.1 or later
