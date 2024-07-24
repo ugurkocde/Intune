@@ -34,6 +34,20 @@ param(
     [string]$AttributeValue
 )
 
+# Check if Microsoft.Graph.Authentication module is installed and import it
+if (-not (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication)) {
+    Write-Log "Microsoft.Graph.Authentication module not found. Attempting to install..." -Level "WARNING"
+    try {
+        Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Force -AllowClobber
+        Write-Log "Microsoft.Graph.Authentication module installed successfully" -Level "SUCCESS"
+    }
+    catch {
+        Write-Log "Failed to install Microsoft.Graph.Authentication module: $_" -Level "ERROR"
+        Write-Log "Please install the Microsoft.Graph.Authentication module manually and rerun the script" -Level "ERROR"
+        exit 1
+    }
+}
+
 # Function to write log messages
 function Write-Log {
     param (
