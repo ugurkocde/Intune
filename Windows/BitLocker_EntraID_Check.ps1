@@ -78,4 +78,15 @@ foreach ($device in $devices.value) {
 # Display results
 $results | Format-Table -AutoSize
 
+# Calculate summary statistics
+$totalDevices = $results.Count
+$devicesWithKey = ($results | Where-Object { $_.'BitLocker Key in EntraID' -eq 'Yes' }).Count
+$devicesWithoutKey = $totalDevices - $devicesWithKey
+
+# Display summary
+Write-Host "`nSummary:" -ForegroundColor Cyan
+Write-Host "Total Windows devices in Intune: $totalDevices" -ForegroundColor Yellow
+Write-Host "Devices with BitLocker key stored in Entra ID: $devicesWithKey" -ForegroundColor Green
+Write-Host "Devices without BitLocker key stored in Entra ID: $devicesWithoutKey" -ForegroundColor Red
+
 $results | Export-Csv -Path "BitLockerKeyStatus.csv" -NoTypeInformation
