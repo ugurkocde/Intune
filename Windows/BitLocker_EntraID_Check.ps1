@@ -16,8 +16,10 @@
     Twitter: https://x.com/UgurKocDe
     LinkedIn: https://www.linkedin.com/in/ugurkocde/
 
-    Version: 1.0
+    Version: 1.1
     Created: 31/07/2024
+    Updated: 01/08/2024
+    Changes: Added nextlink to get all devices with pagination. (limit without nextlink is 1000 devices)
 
     Required Permissions:
     - DeviceManagementManagedDevices.Read.All
@@ -58,13 +60,19 @@ function Get-BitLockerKey {
     return "No"
 }
 
-# Get all Windows devices from Intune
+# Get all Windows devices from Intune (with pagination)
 $devicesUri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$filter=operatingSystem eq 'Windows'"
-$devices = Invoke-MgGraphRequest -Uri $devicesUri -Method GET
+$devices = @()
+
+do {
+    $response = Invoke-MgGraphRequest -Uri $devicesUri -Method GET
+    $devices += $response.value
+    $devicesUri = $response.'@odata.nextLink'
+} while ($devicesUri)
 
 $results = @()
 
-foreach ($device in $devices.value) {
+foreach ($device in $devices) {
     $hasBitlockerKey = Get-BitLockerKey -azureADDeviceId $device.azureADDeviceId
 
     $results += [PSCustomObject]@{
