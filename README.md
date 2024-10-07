@@ -3,4 +3,4 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
  
 # Intune
-Hi, here you will find all of my published PowerShell tools and scripts.
+Hi, here you will find some of my published PowerShell tools and scripts.
