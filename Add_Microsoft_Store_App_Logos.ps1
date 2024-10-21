@@ -126,25 +126,36 @@ catch {
 
 ## Start of Functions
 
-# Function to get base64 encoded image from URL
+# Function to get base64 encoded image from URL with retry mechanism
 function Get-Base64EncodedImage {
     param (
-        [string]$ImageUrl
+        [string]$ImageUrl,
+        [int]$MaxRetries = 3,
+        [int]$RetryDelay = 5
     )
     
-    try {
-        $webClient = New-Object System.Net.WebClient
-        $imageBytes = $webClient.DownloadData($ImageUrl)
-        $base64 = [System.Convert]::ToBase64String($imageBytes)
-        return $base64
-    }
-    catch {
-        Write-Host "Error downloading image from $ImageUrl : $_" -ForegroundColor Red
-        return $null
-    }
-    finally {
-        if ($webClient -ne $null) {
-            $webClient.Dispose()
+    for ($i = 0; $i -lt $MaxRetries; $i++) {
+        try {
+            $webClient = New-Object System.Net.WebClient
+            $imageBytes = $webClient.DownloadData($ImageUrl)
+            $base64 = [System.Convert]::ToBase64String($imageBytes)
+            return $base64
+        }
+        catch {
+            Write-Host "  [WARNING] Error downloading image from $ImageUrl : $_" -ForegroundColor Yellow
+            if ($i -lt $MaxRetries - 1) {
+                Write-Host "  [INFO] Retrying in $RetryDelay seconds..." -ForegroundColor Cyan
+                Start-Sleep -Seconds $RetryDelay
+            }
+            else {
+                Write-Host "  [ERROR] Max retries reached. Unable to download image." -ForegroundColor Red
+                return $null
+            }
+        }
+        finally {
+            if ($webClient -ne $null) {
+                $webClient.Dispose()
+            }
         }
     }
 }
@@ -152,6 +163,11 @@ function Get-Base64EncodedImage {
 ## End of Functions
 
 ## Start of Main Script
+
+# Configuration for rate limiting
+$delayBetweenRequests = 2 # Delay in seconds between requests to the Microsoft Store
+$maxRetries = 3 # Maximum number of retries for rate-limited requests
+$retryDelay = 10 # Delay in seconds before retrying after a rate limit error
 
 # Get all Store Apps
 $StoreApps = @()
@@ -198,46 +214,67 @@ foreach ($app in $StoreApps) {
 
     $storeUrl = "https://apps.microsoft.com/detail/$($app.PackageIdentifier)"
     
-    try {
-        $response = Invoke-WebRequest -Uri $storeUrl -UseBasicParsing
-        $html = $response.Content
+    for ($retryCount = 0; $retryCount -lt $maxRetries; $retryCount++) {
+        try {
+            $response = Invoke-WebRequest -Uri $storeUrl -UseBasicParsing
+            $html = $response.Content
 
-        # Extract image URL using regex
-        $imgPattern = '"iconUrl":"(https://store-images\.s-microsoft\.com/[^"]+)"'
-        $imgMatch = [regex]::Match($html, $imgPattern)
-        
-        if ($imgMatch.Success) {
-            $imageUrl = $imgMatch.Groups[1].Value
-            Write-Host "  [INFO] Found image URL: $imageUrl" -ForegroundColor Green
+            # Extract image URL using regex
+            $imgPattern = '"iconUrl":"(https://store-images\.s-microsoft\.com/[^"]+)"'
+            $imgMatch = [regex]::Match($html, $imgPattern)
+            
+            if ($imgMatch.Success) {
+                $imageUrl = $imgMatch.Groups[1].Value
+                Write-Host "  [INFO] Found image URL: $imageUrl" -ForegroundColor Green
 
-            # Get base64 encoded image
-            $base64Image = Get-Base64EncodedImage -ImageUrl $imageUrl
+                # Get base64 encoded image
+                $base64Image = Get-Base64EncodedImage -ImageUrl $imageUrl -MaxRetries $maxRetries -RetryDelay $retryDelay
 
-            # Prepare the update payload
-            $updatePayload = @{
-                "@odata.type" = "#microsoft.graph.winGetApp"
-                largeIcon     = @{
-                    "@odata.type" = "#microsoft.graph.mimeContent"
-                    "type"        = "image/png"
-                    "value"       = $base64Image
+                if ($base64Image) {
+                    # Prepare the update payload
+                    $updatePayload = @{
+                        "@odata.type" = "#microsoft.graph.winGetApp"
+                        largeIcon     = @{
+                            "@odata.type" = "#microsoft.graph.mimeContent"
+                            "type"        = "image/png"
+                            "value"       = $base64Image
+                        }
+                    }
+
+                    # Update the app
+                    $updateUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$($app.id)"
+                    Invoke-MgGraphRequest -Uri $updateUri -Method Patch -Body ($updatePayload | ConvertTo-Json)
+                    Write-Host "  [SUCCESS] Updated logo for $($app.DisplayName)" -ForegroundColor Green
+                    $updatedApps++
+                }
+                else {
+                    Write-Host "  [ERROR] Failed to download logo for $($app.DisplayName)" -ForegroundColor Red
+                    $failedApps++
                 }
             }
+            else {
+                Write-Host "  [WARNING] No logo found for $($app.DisplayName)" -ForegroundColor Yellow
+                $failedApps++
+            }
 
-            # Update the app
-            $updateUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$($app.id)"
-            Invoke-MgGraphRequest -Uri $updateUri -Method Patch -Body ($updatePayload | ConvertTo-Json)
-            Write-Host "  [SUCCESS] Updated logo for $($app.DisplayName)" -ForegroundColor Green
-            $updatedApps++
+            # Break the retry loop if successful
+            break
         }
-        else {
-            Write-Host "  [WARNING] No logo found for $($app.DisplayName)" -ForegroundColor Yellow
-            $failedApps++
+        catch {
+            if ($_.Exception.Response.StatusCode -eq 429) {
+                Write-Host "  [WARNING] Rate limit reached. Retrying in $retryDelay seconds..." -ForegroundColor Yellow
+                Start-Sleep -Seconds $retryDelay
+            }
+            else {
+                Write-Host "  [ERROR] Failed to process $($app.DisplayName): $_" -ForegroundColor Red
+                $failedApps++
+                break
+            }
         }
     }
-    catch {
-        Write-Host "  [ERROR] Failed to process $($app.DisplayName): $_" -ForegroundColor Red
-        $failedApps++
-    }
+
+    # Add delay between requests to avoid rate limiting
+    Start-Sleep -Seconds $delayBetweenRequests
 }
 
 # Display summary
