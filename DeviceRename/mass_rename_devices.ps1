@@ -3,8 +3,9 @@
     Mass rename script for Intune-managed devices using a CSV file.
 
 .DESCRIPTION
-    This script reads a CSV file containing device names and serial numbers, then uses the Microsoft Graph API
-    to rename the corresponding devices in Intune.
+    This script reads a CSV file containing device names and serial numbers, then uses the Microsoft Graph API to rename the corresponding devices in Intune.
+
+    Note: Device renaming requires a sync with the device to take effect. In some cases, a device restart may also be needed.
 
 .NOTES
     Version:        1.0.0
