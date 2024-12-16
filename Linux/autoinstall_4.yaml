@@ -35,7 +35,6 @@ autoinstall:
     - curtin in-target --target=/target -- sh -c 'cd /tmp/microsoft && curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg'
     - curtin in-target --target=/target -- install -o root -g root -m 644 /tmp/microsoft/microsoft.gpg /usr/share/keyrings/microsoft.gpg
     - curtin in-target --target=/target -- sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/24.04/prod noble main" > /etc/apt/sources.list.d/microsoft-ubuntu-noble-prod.list'
-    - curtin in-target --target=/target -- rm -rf /tmp/microsoft
     - curtin in-target --target=/target -- apt-get update
     - curtin in-target --target=/target -- apt-get install -y intune-portal
 
@@ -53,6 +52,7 @@ autoinstall:
     # Clean up
     - curtin in-target --target=/target -- apt-get autoremove -y
     - curtin in-target --target=/target -- apt-get clean
+    - curtin in-target --target=/target -- rm -rf /tmp/microsof
 
     # Reboot
     - curtin in-target --target=/target -- reboot
