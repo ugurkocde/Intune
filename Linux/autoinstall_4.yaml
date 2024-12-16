@@ -48,8 +48,8 @@ autoinstall:
     - curtin in-target --target=/target -- systemctl start mdatp
 
     # Install Microsoft Edge
-    - curtin in-target --target=/target -- wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
-    - curtin in-target --target=/target -- add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main"
+    - curtin in-target --target=/target -- curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /usr/share/keyrings/microsoft-edge.gpg
+    - curtin in-target --target=/target -- sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge.list'
     - curtin in-target --target=/target -- apt-get update
     - curtin in-target --target=/target -- apt-get install -y microsoft-edge-stable
 
