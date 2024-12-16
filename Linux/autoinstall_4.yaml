@@ -44,13 +44,6 @@ autoinstall:
     - curtin in-target --target=/target -- chmod +x /tmp/microsoft/mde_installer.sh
     - curtin in-target --target=/target -- /tmp/microsoft/mde_installer.sh --install --channel prod -y
 
-    # Set background image
-    - curtin in-target --target=/target -- mkdir -p /usr/share/backgrounds/custom
-    - curtin in-target --target=/target -- wget -O /usr/share/backgrounds/custom/background.jpg https://raw.githubusercontent.com/ugurkocde/Intune/main/Linux/media/Thermenresort_Loipersdorf.jpg
-    - curtin in-target --target=/target -- chmod 644 /usr/share/backgrounds/custom/background.jpg
-    - curtin in-target --target=/target -- -u $(id -un 1000) dconf write /org/gnome/desktop/background/picture-uri "'file:///usr/share/backgrounds/custom/background.jpg'"
-    - curtin in-target --target=/target -- -u $(id -un 1000) dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///usr/share/backgrounds/custom/background.jpg'"
-
     # Remove bloatware
     - curtin in-target --target=/target -- apt-get remove -y libreoffice-common
     - curtin in-target --target=/target -- apt-get remove -y libreoffice*
