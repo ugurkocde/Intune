@@ -34,4 +34,11 @@ autoinstall:
     - curtin in-target --target=/target -- rm -rf /tmp/microsoft
     - curtin in-target --target=/target -- apt-get update
     - curtin in-target --target=/target -- apt-get install -y intune-portal
+
+    # Install MDE
+
+    # Clean up
+    - curtin in-target -- apt-get autoremove -y
+
+    # Reboot
     - curtin in-target --target=/target -- reboot
