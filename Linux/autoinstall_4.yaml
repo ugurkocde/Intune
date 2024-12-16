@@ -52,7 +52,7 @@ autoinstall:
     # Clean up
     - curtin in-target --target=/target -- apt-get autoremove -y
     - curtin in-target --target=/target -- apt-get clean
-    - curtin in-target --target=/target -- rm -rf /tmp/microsof
+    - curtin in-target --target=/target -- rm -rf /tmp/microsoft
 
     # Reboot
     - curtin in-target --target=/target -- reboot
