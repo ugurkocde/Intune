@@ -42,12 +42,23 @@ autoinstall:
     - curtin in-target --target=/target -- wget -O /tmp/microsoft/mde_installer.sh https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh
     - curtin in-target --target=/target -- chmod +x /tmp/microsoft/mde_installer.sh
     - curtin in-target --target=/target -- /tmp/microsoft/mde_installer.sh --install --channel prod -y
+    # Initialize MDE service
+    - curtin in-target --target=/target -- systemctl daemon-reload
+    - curtin in-target --target=/target -- systemctl enable mdatp
+    - curtin in-target --target=/target -- systemctl start mdatp
+
+    # Install Microsoft Edge
+    - curtin in-target --target=/target -- wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
+    - curtin in-target --target=/target -- add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main"
+    - curtin in-target --target=/target -- apt-get update
+    - curtin in-target --target=/target -- apt-get install -y microsoft-edge-stable
 
     # Remove bloatware
     - curtin in-target --target=/target -- apt-get remove -y libreoffice-common
     - curtin in-target --target=/target -- apt-get remove -y libreoffice*
     - curtin in-target --target=/target -- apt-get remove -y remmina*
     - curtin in-target --target=/target -- apt-get remove -y transmission*
+    - curtin in-target --target=/target -- apt-get remove -y firefox*
 
     # Clean up
     - curtin in-target --target=/target -- apt-get autoremove -y
