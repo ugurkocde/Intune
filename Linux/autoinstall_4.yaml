@@ -58,7 +58,6 @@ autoinstall:
     - curtin in-target --target=/target -- apt-get purge -y libreoffice*
     - curtin in-target --target=/target -- apt-get purge -y remmina*
     - curtin in-target --target=/target -- apt-get purge -y transmission*
-    - curtin in-target --target=/target -- apt-get purge -y firefox*
 
     # Clean up
     - curtin in-target --target=/target -- apt-get autoremove -y
