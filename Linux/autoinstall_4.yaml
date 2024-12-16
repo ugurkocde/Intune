@@ -42,6 +42,7 @@ autoinstall:
     - curtin in-target --target=/target -- wget -O /tmp/microsoft/mde_installer.sh https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh
     - curtin in-target --target=/target -- chmod +x /tmp/microsoft/mde_installer.sh
     - curtin in-target --target=/target -- /tmp/microsoft/mde_installer.sh --install --channel prod -y
+
     # Initialize MDE service
     - curtin in-target --target=/target -- systemctl daemon-reload
     - curtin in-target --target=/target -- systemctl enable mdatp
