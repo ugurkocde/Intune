@@ -13,7 +13,6 @@ autoinstall:
     layout: de
   locale: en_US
   packages:
-    - ubuntu-desktop
     - curl
     - wget
   snaps:
