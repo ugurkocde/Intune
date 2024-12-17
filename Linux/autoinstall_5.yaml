@@ -1,0 +1,77 @@
+#cloud-config
+autoinstall:
+  version: 1
+  user-data:
+    users: [""]
+    disable_root: false
+  ssh:
+    install-server: no
+  storage:
+    layout:
+      name: direct
+  keyboard:
+    layout: de
+  locale: en_US
+  packages:
+    - ubuntu-desktop
+    - curl
+    - wget
+  snaps:
+    - name: code
+      classic: true
+    - name: postman
+      classic: false
+    - name: powershell
+      classic: true
+    - name: pycharm-community
+      classic: true
+  late-commands:
+    # Update packages
+    - echo "Updating packages..."
+    - curtin in-target --target=/target -- apt-get update > /dev/null 2>&1
+    - curtin in-target --target=/target -- apt-get upgrade -y > /dev/null 2>&1
+
+    # Install Microsoft Intune Portal
+    - echo "Installing Microsoft Intune Portal..."
+    - curtin in-target --target=/target -- mkdir -p /tmp/microsoft
+    - curtin in-target --target=/target -- sh -c 'cd /tmp/microsoft && curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg' > /dev/null 2>&1
+    - curtin in-target --target=/target -- install -o root -g root -m 644 /tmp/microsoft/microsoft.gpg /usr/share/keyrings/microsoft.gpg
+    - curtin in-target --target=/target -- sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/24.04/prod noble main" > /etc/apt/sources.list.d/microsoft-ubuntu-noble-prod.list'
+    - curtin in-target --target=/target -- apt-get update > /dev/null 2>&1
+    - curtin in-target --target=/target -- apt-get install -y intune-portal > /dev/null 2>&1
+
+    # Install MDE
+    - echo "Installing Microsoft Defender for Endpoint..."
+    - curtin in-target --target=/target -- wget -O /tmp/microsoft/mde_installer.sh https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh > /dev/null 2>&1
+    - curtin in-target --target=/target -- chmod +x /tmp/microsoft/mde_installer.sh
+    - curtin in-target --target=/target -- /tmp/microsoft/mde_installer.sh --install --channel prod -y > /dev/null 2>&1
+
+    # Initialize MDE service
+    - echo "Initializing MDE service..."
+    - curtin in-target --target=/target -- systemctl daemon-reload > /dev/null 2>&1
+    - curtin in-target --target=/target -- systemctl enable mdatp > /dev/null 2>&1
+    - curtin in-target --target=/target -- systemctl start mdatp > /dev/null 2>&1
+
+    # Install Microsoft Edge
+    - echo "Installing Microsoft Edge..."
+    - curtin in-target --target=/target -- wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add - > /dev/null 2>&1
+    - curtin in-target --target=/target -- add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /dev/null 2>&1
+    - curtin in-target --target=/target -- apt-get update > /dev/null 2>&1
+    - curtin in-target --target=/target -- apt-get install -y microsoft-edge-stable > /dev/null 2>&1
+
+    # Remove bloatware
+    - echo "Removing bloatware..."
+    - curtin in-target --target=/target -- apt-get purge -y libreoffice-common > /dev/null 2>&1
+    - curtin in-target --target=/target -- apt-get purge -y libreoffice* > /dev/null 2>&1
+    - curtin in-target --target=/target -- apt-get purge -y remmina* > /dev/null 2>&1
+    - curtin in-target --target=/target -- apt-get purge -y transmission* > /dev/null 2>&1
+
+    # Clean up
+    - echo "Cleaning up..."
+    - curtin in-target --target=/target -- apt-get autoremove -y > /dev/null 2>&1
+    - curtin in-target --target=/target -- apt-get clean > /dev/null 2>&1
+    - curtin in-target --target=/target -- rm -rf /tmp/microsoft
+
+    # Reboot
+    - echo "Installation complete. Rebooting..."
+    - curtin in-target --target=/target -- reboot
