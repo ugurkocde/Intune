@@ -66,7 +66,7 @@ autoinstall:
     - curtin in-target --target=/target -- rm -rf /tmp/microsoft
 
     # Show completion notification and wait before reboot
-    - curtin in-target --target=/target -- DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send -u critical "Installation Complete" "System will reboot in 10 seconds..."
+    - curtin in-target --target=/target -- notify-send -u critical "Installation Complete" "System will reboot in 10 seconds..."
     - curtin in-target --target=/target -- sleep 10
 
     # Reboot
