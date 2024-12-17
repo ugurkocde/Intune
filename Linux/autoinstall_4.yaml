@@ -8,7 +8,7 @@ autoinstall:
     install-server: no
   storage:
     layout:
-      name: direct
+      name: lvm
   keyboard:
     layout: de
   locale: en_US
