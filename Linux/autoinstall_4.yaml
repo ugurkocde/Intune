@@ -9,6 +9,7 @@ autoinstall:
   storage:
     layout:
       name: lvm
+      password: ubuntu
   keyboard:
     layout: de
   locale: en_US
