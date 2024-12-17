@@ -16,7 +16,6 @@ autoinstall:
   packages:
     - curl
     - wget
-    - libnotify-bin
   snaps:
     - name: code
       classic: true
