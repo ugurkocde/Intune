@@ -66,8 +66,8 @@ autoinstall:
     - curtin in-target --target=/target -- rm -rf /tmp/microsoft
 
     # Show completion notification and wait before reboot
-    - curtin in-target --target=/target -- notify-send -u critical "Installation Complete" "System will reboot in 10 seconds..."
-    - curtin in-target --target=/target -- sleep 10
+    - notify-send -u critical "Installation Complete" "System will reboot in 10 seconds..."
+    - sleep 10
 
     # Reboot
     - curtin in-target --target=/target -- reboot
