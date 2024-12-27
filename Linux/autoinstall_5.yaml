@@ -6,78 +6,82 @@ autoinstall:
     disable_root: false
   ssh:
     install-server: no
-  storage:
-    layout:
-      name: lvm
-      password: ubuntu # Change this to your desired password
   keyboard:
     layout: de
   locale: en_US
   packages:
     - curl
     - wget
-  snaps: # Install apps from this catalog: https://snapcraft.io/store
-    - name: code
-    - name: postman
-    - name: powershell
-    - name: pycharm-community
-
-  early-commands:
-    # Install zenity for GUI dialogs
-    - apt-get update
-    - apt-get install -y zenity
+    - zenity
 
   late-commands:
-    # Start installation progress window
-    - curtin in-target --target=/target -- zenity --progress --title="Ubuntu Installation Progress" --text="Starting installation..." --percentage=0 --auto-close &
+    # Create a progress script that will run at first login
+    - curtin in-target --target=/target -- bash -c 'cat > /usr/local/bin/show-install-progress << "EOF"
+      #!/bin/bash
+      (
+        echo "10" ; sleep 2
+        echo "# Installing Microsoft Intune Portal..." ; sleep 2
+        
+        # Intune Portal Installation
+        cd /tmp
+        curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+        install -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/microsoft.gpg
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/24.04/prod noble main" > /etc/apt/sources.list.d/microsoft-ubuntu-noble-prod.list
+        apt-get update
+        apt-get install -y intune-portal
+        
+        echo "40" ; sleep 2
+        echo "# Installing Microsoft Defender..." ; sleep 2
+        
+        # MDE Installation
+        wget -O mde_installer.sh https://raw.githubusercontent.com/microsoft/mdatp-xplat/master/linux/installation/mde_installer.sh
+        chmod +x mde_installer.sh
+        ./mde_installer.sh --install --channel prod -y
+        systemctl enable mdatp
+        systemctl start mdatp
+        
+        echo "70" ; sleep 2
+        echo "# Installing Microsoft Edge..." ; sleep 2
+        
+        # Edge Installation
+        add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main"
+        apt-get update
+        apt-get install -y microsoft-edge-stable
+        
+        echo "90" ; sleep 2
+        echo "# Cleaning up..." ; sleep 2
+        
+        # Cleanup
+        apt-get autoremove -y
+        apt-get clean
+        rm -rf /tmp/microsoft*
+        
+        echo "100" ; sleep 2
+      ) |
+      zenity --progress \
+        --title="Post-Installation Setup" \
+        --text="Starting setup..." \
+        --percentage=0 \
+        --auto-close \
+        --width=400
+      
+      zenity --info --text="Setup complete!" --width=200
+      EOF'
 
-    # Update packages
-    - curtin in-target --target=/target -- zenity --progress --text="Updating packages..." --percentage=10 --auto-close
-    - curtin in-target --target=/target -- apt-get update
-    - curtin in-target --target=/target -- apt-get upgrade -y
+    # Make the progress script executable
+    - curtin in-target --target=/target -- chmod +x /usr/local/bin/show-install-progress
 
-    # Install Microsoft Intune Portal
-    - curtin in-target --target=/target -- zenity --progress --text="Installing Microsoft Intune Portal..." --percentage=25 --auto-close
-    - curtin in-target --target=/target -- mkdir -p /tmp/microsoft
-    - curtin in-target --target=/target -- sh -c 'cd /tmp/microsoft && curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg'
-    - curtin in-target --target=/target -- install -o root -g root -m 644 /tmp/microsoft/microsoft.gpg /usr/share/keyrings/microsoft.gpg
-    - curtin in-target --target=/target -- sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/24.04/prod noble main" > /etc/apt/sources.list.d/microsoft-ubuntu-noble-prod.list'
-    - curtin in-target --target=/target -- apt-get update
-    - curtin in-target --target=/target -- apt-get install -y intune-portal
-
-    # Install MDE
-    - curtin in-target --target=/target -- zenity --progress --text="Installing Microsoft Defender..." --percentage=45 --auto-close
-    - curtin in-target --target=/target -- wget -O /tmp/microsoft/mde_installer.sh https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh
-    - curtin in-target --target=/target -- chmod +x /tmp/microsoft/mde_installer.sh
-    - curtin in-target --target=/target -- /tmp/microsoft/mde_installer.sh --install --channel prod -y
-
-    # Initialize MDE service
-    - curtin in-target --target=/target -- zenity --progress --text="Initializing Microsoft Defender..." --percentage=60 --auto-close
-    - curtin in-target --target=/target -- systemctl daemon-reload
-    - curtin in-target --target=/target -- systemctl enable mdatp
-    - curtin in-target --target=/target -- systemctl start mdatp
-
-    # Install Microsoft Edge
-    - curtin in-target --target=/target -- zenity --progress --text="Installing Microsoft Edge..." --percentage=75 --auto-close
-    - curtin in-target --target=/target -- add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main"
-    - curtin in-target --target=/target -- apt-get update
-    - curtin in-target --target=/target -- apt-get install -y microsoft-edge-stable
-
-    # Remove bloatware
-    - curtin in-target --target=/target -- zenity --progress --text="Removing unnecessary packages..." --percentage=85 --auto-close
-    - curtin in-target --target=/target -- apt-get purge -y libreoffice-common
-    - curtin in-target --target=/target -- apt-get purge -y libreoffice*
-    - curtin in-target --target=/target -- apt-get purge -y remmina*
-    - curtin in-target --target=/target -- apt-get purge -y transmission*
-
-    # Clean up
-    - curtin in-target --target=/target -- zenity --progress --text="Cleaning up..." --percentage=95 --auto-close
-    - curtin in-target --target=/target -- apt-get autoremove -y
-    - curtin in-target --target=/target -- apt-get clean
-    - curtin in-target --target=/target -- rm -rf /tmp/microsoft
-
-    # Installation complete
-    - curtin in-target --target=/target -- zenity --info --title="Installation Complete" --text="Installation has finished successfully. System will now reboot."
+    # Create autostart entry for the progress script
+    - curtin in-target --target=/target -- mkdir -p /etc/skel/.config/autostart
+    - curtin in-target --target=/target -- bash -c 'cat > /etc/skel/.config/autostart/install-progress.desktop << "EOF"
+      [Desktop Entry]
+      Type=Application
+      Name=Installation Progress
+      Exec=/usr/local/bin/show-install-progress
+      Hidden=false
+      NoDisplay=false
+      X-GNOME-Autostart-enabled=true
+      EOF'
 
     # Reboot
     - curtin in-target --target=/target -- reboot
