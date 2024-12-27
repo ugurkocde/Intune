@@ -1,4 +1,4 @@
-# Function to get assignment information 1
+# Function to get assignment information 2
 function Get-AssignmentInfo {
     param (
         [Parameter(Mandatory = $true)]
@@ -397,6 +397,8 @@ function Export-HTMLReport {
 
             tables.search('').draw(); // Clear existing search
 
+            tables.search('').columns(1).search('').draw(); // Clear all filters first
+            
             if (filter === 'all') {
                 tables.search('').draw();
             } else if (filter === 'all-users') {
@@ -787,6 +789,7 @@ function Export-HTMLReport {
     $htmlContent | Out-File -FilePath $FilePath -Encoding UTF8
     Write-Host "HTML report exported to: $FilePath" -ForegroundColor Green
 }
+
 
 
 
