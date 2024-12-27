@@ -15,14 +15,14 @@ function Get-AssignmentInfo {
 
     $assignment = $Assignments[0]  # Take the first assignment
     $type = switch ($assignment.Reason) {
-        "All Users"       { "All Users"; break }
-        "All Devices"     { "All Devices"; break }
+        "All Users" { "All Users"; break }
+        "All Devices" { "All Devices"; break }
         "Group Assignment" { "Group"; break }
-        default           { "None" }
+        default { "None" }
     }
 
     $target = switch ($type) {
-        "All Users"   { "All Users" }
+        "All Users" { "All Users" }
         "All Devices" { "All Devices" }
         "Group" {
             if ($assignment.GroupId) {
@@ -173,11 +173,15 @@ function Export-HTMLReport {
             background-color: var(--card-bg);
         }
         .chart-container {
-            margin: 20px 0;
-            padding: 20px;
-            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            background: var(--card-bg);
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .search-box {
             margin: 20px 0;
@@ -363,9 +367,9 @@ function Export-HTMLReport {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script>
-        \`$(document).ready(function() {
+        jQuery(document).ready(function() {
             // Initialize DataTables
-            const tables = \$('.policy-table').DataTable({
+            var tables = jQuery('.policy-table').DataTable({
                 dom: 'Blfrtip',
                 buttons: [
                     'copyHtml5',
@@ -384,32 +388,44 @@ function Export-HTMLReport {
             });
 
             // Quick Action Filtering
-            \$('.quick-action-btn').on('click', function() {
-                const filter = \$(this).data('filter');
-                \$('.quick-action-btn').removeClass('active');
-                \$(this).addClass('active');
-                tables.search('').draw(); 
-                tables.search('').columns(1).search('').draw(); 
+            jQuery('.quick-action-btn').on('click', function() {
+                const filter = jQuery(this).data('filter');
+                jQuery('.quick-action-btn').removeClass('active');
+                jQuery(this).addClass('active');
                 
-                if (filter === 'all') {
-                    tables.search('').draw();
-                } else if (filter === 'all-users') {
-                    tables.search('All Users').draw();
-                } else if (filter === 'all-devices') {
-                    tables.columns(1).search('^All Devices$', true, false).draw();
-                    setTimeout(() => {
-                        tables.columns(1).search('^All Devices$', true, false).draw();
-                    }, 100);
-                } else if (filter === 'group') {
-                    tables.search('Group').draw();
-                } else if (filter === 'none') {
-                    tables.search('Not Assigned').draw();
-                }
+                jQuery('.policy-table').each(function() {
+                    const dataTable = jQuery(this).DataTable();
+                    
+                    if (filter === 'all') {
+                        dataTable.search('').columns().search('').draw();
+                    } else {
+                        let searchTerm = '';
+                        switch(filter) {
+                            case 'all-users':
+                                searchTerm = 'All Users';
+                                break;
+                            case 'all-devices':
+                                searchTerm = 'All Devices';
+                                break;
+                            case 'group':
+                                searchTerm = 'Group';
+                                break;
+                            case 'none':
+                                searchTerm = 'None';
+                                break;
+                        }
+                        
+                        // Simple column search on the Assignment Type column (index 1)
+                        dataTable.column(1).search(searchTerm, false, false).draw();
+                    }
+                });
             });
 
-            \$('#groupSearch').on('keyup', function() {
+            jQuery('#groupSearch').on('keyup', function() {
                 const searchTerm = this.value.toLowerCase();
-                tables.search(searchTerm).draw();
+                jQuery('.policy-table').each(function() {
+                    jQuery(this).DataTable().search(searchTerm).draw();
+                });
             });
 
             // Show the first tab by default
@@ -550,8 +566,8 @@ function Export-HTMLReport {
                         ID             = $policy.id
                         Type           = "App Protection Policy"
                         AssignmentType = if ($assignmentSummary -match "All Users") { "All Users" }
-                                         elseif ($assignmentSummary -match "Group") { "Group" }
-                                         else { "None" }
+                        elseif ($assignmentSummary -match "Group") { "Group" }
+                        else { "None" }
                         AssignedTo     = $assignmentSummary
                     }
                 }
@@ -615,10 +631,10 @@ function Export-HTMLReport {
     foreach ($category in $categories) {
         $items = $policies[$category.Key]
         $summaryStats.TotalPolicies += $items.Count
-        $summaryStats.AllUsers      += ($items | Where-Object { $_.AssignmentType -eq "All Users" }).Count
-        $summaryStats.AllDevices    += ($items | Where-Object { $_.AssignmentType -eq "All Devices" }).Count
+        $summaryStats.AllUsers += ($items | Where-Object { $_.AssignmentType -eq "All Users" }).Count
+        $summaryStats.AllDevices += ($items | Where-Object { $_.AssignmentType -eq "All Devices" }).Count
         $summaryStats.GroupAssigned += ($items | Where-Object { $_.AssignmentType -eq "Group" }).Count
-        $summaryStats.Unassigned    += ($items | Where-Object { $_.AssignmentType -eq "None" }).Count
+        $summaryStats.Unassigned += ($items | Where-Object { $_.AssignmentType -eq "None" }).Count
     }
 
     # Build dynamic tab headers and tab content
@@ -650,10 +666,10 @@ function Export-HTMLReport {
                 if ($categoryPolicies) {
                     foreach ($p in $categoryPolicies) {
                         $badgeClass = switch ($p.AssignmentType) {
-                            'All Users'   { 'badge-all-users' }
+                            'All Users' { 'badge-all-users' }
                             'All Devices' { 'badge-all-devices' }
-                            'Group'       { 'badge-group' }
-                            default       { 'badge-none' }
+                            'Group' { 'badge-group' }
+                            default { 'badge-none' }
                         }
                         "<tr>
                             <td>$($p.Name)</td>
@@ -688,10 +704,10 @@ function Export-HTMLReport {
         else {
             $tableRows = foreach ($p in $policies[$category.Key]) {
                 $badgeClass = switch ($p.AssignmentType) {
-                    'All Users'   { 'badge-all-users' }
+                    'All Users' { 'badge-all-users' }
                     'All Devices' { 'badge-all-devices' }
-                    'Group'       { 'badge-group' }
-                    default       { 'badge-none' }
+                    'Group' { 'badge-group' }
+                    default { 'badge-none' }
                 }
                 "<tr>
                     <td>$($p.Name)</td>
@@ -779,13 +795,23 @@ function Export-HTMLReport {
 
     # Insert chart container + Chart.js script
     $chartBlock = @"
-<div class='chart-container'>
-    <canvas id='policyDistributionChart'></canvas>
+<div class='row'>
+    <div class='col-md-6'>
+        <div class='chart-container'>
+            <canvas id='policyDistributionChart'></canvas>
+        </div>
+    </div>
+    <div class='col-md-6'>
+        <div class='chart-container'>
+            <canvas id='policyTypesChart'></canvas>
+        </div>
+    </div>
 </div>
 <script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
 <script>
-    var ctx = document.getElementById('policyDistributionChart').getContext('2d');
-    var policyDistributionChart = new Chart(ctx, {
+    // Policy Distribution Pie Chart
+    var ctx1 = document.getElementById('policyDistributionChart').getContext('2d');
+    var policyDistributionChart = new Chart(ctx1, {
         type: 'pie',
         data: {
             labels: ['All Users', 'All Devices', 'Group Assigned', 'Unassigned'],
@@ -797,13 +823,62 @@ function Export-HTMLReport {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: { font: { size: 10 } }
                 },
                 title: {
                     display: true,
-                    text: 'Policy Assignment Distribution'
+                    text: 'Policy Assignment Distribution',
+                    font: { size: 14 }
+                }
+            }
+        }
+    });
+
+    // Policy Types Bar Chart
+    var ctx2 = document.getElementById('policyTypesChart').getContext('2d');
+    var policyTypesChart = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: ['Device Configs', 'Settings Catalog', 'Admin Templates', 'Compliance', 'App Protection', 'Scripts'],
+            datasets: [{
+                label: 'Number of Policies',
+                data: [
+                    $($policies.DeviceConfigs.Count),
+                    $($policies.SettingsCatalog.Count),
+                    $($policies.AdminTemplates.Count),
+                    $($policies.CompliancePolicies.Count),
+                    $($policies.AppProtectionPolicies.Count),
+                    $($policies.PlatformScripts.Count + $policies.HealthScripts.Count)
+                ],
+                backgroundColor: [
+                    '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Policy Types Distribution',
+                    font: { size: 14 }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { font: { size: 10 } }
+                },
+                x: {
+                    ticks: { font: { size: 10 } }
                 }
             }
         }
