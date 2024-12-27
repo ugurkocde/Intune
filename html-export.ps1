@@ -336,9 +336,9 @@ function Export-HTMLReport {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script>
-        $(document).ready(function() {
+        `$(document).ready(function() {
             // Initialize DataTables with search and sort functionality
-            const tables = $('.policy-table').DataTable({
+            const tables = `$('.policy-table').DataTable({
                 dom: 'Blfrtip',
                 buttons: [
                     'copyHtml5',
@@ -356,7 +356,7 @@ function Export-HTMLReport {
                 ]
             });
 
-            $('#groupSearch').on('keyup', function() {
+            `$('#groupSearch').on('keyup', function() {
                 const searchTerm = this.value.toLowerCase();
                 tables.search(searchTerm).draw();
             });
@@ -730,3 +730,4 @@ function Export-HTMLReport {
     $htmlContent | Out-File -FilePath $FilePath -Encoding UTF8
     Write-Host "HTML report exported to: $FilePath" -ForegroundColor Green
 }
+
