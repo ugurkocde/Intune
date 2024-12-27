@@ -1,4 +1,4 @@
-# Function to get assignment information
+# Function to get assignment information 1
 function Get-AssignmentInfo {
     param (
         [Parameter(Mandatory = $true)]
@@ -402,7 +402,10 @@ function Export-HTMLReport {
             } else if (filter === 'all-users') {
                 tables.search('All Users').draw();
             } else if (filter === 'all-devices') {
-                tables.search('All Devices').draw();
+                tables.columns(1).search('^All Devices$', true, false).draw();
+                setTimeout(() => {
+                    tables.columns(1).search('^All Devices$', true, false).draw();
+                }, 100); // Double search to ensure proper filtering
             } else if (filter === 'group') {
                 tables.search('Group').draw();
             } else if (filter === 'none') {
@@ -784,5 +787,6 @@ function Export-HTMLReport {
     $htmlContent | Out-File -FilePath $FilePath -Encoding UTF8
     Write-Host "HTML report exported to: $FilePath" -ForegroundColor Green
 }
+
 
 
