@@ -6,13 +6,22 @@ autoinstall:
     disable_root: false
   ssh:
     install-server: no
+  storage:
+    layout:
+      name: lvm
+      password: ubuntu
   keyboard:
     layout: de
   locale: en_US
   packages:
     - curl
     - wget
-    - zenity
+    - zenity  # Add zenity to initial package list
+  snaps:
+    - name: code
+    - name: postman
+    - name: powershell
+    - name: pycharm-community
 
   late-commands:
     # Create a progress script that will run at first login
