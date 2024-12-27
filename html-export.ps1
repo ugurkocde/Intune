@@ -342,12 +342,6 @@ function Export-HTMLReport {
                 <button type="button" class="btn btn-outline-warning quick-action-btn" data-filter="group">Group Assignments</button>
                 <button type="button" class="btn btn-outline-danger quick-action-btn" data-filter="none">Unassigned Policies</button>
             </div>
-            <div class="btn-group mt-2" role="group">
-                <button type="button" class="btn btn-outline-secondary quick-action-btn" data-filter="device-config">Device Configurations</button>
-                <button type="button" class="btn btn-outline-secondary quick-action-btn" data-filter="compliance">Compliance Policies</button>
-                <button type="button" class="btn btn-outline-secondary quick-action-btn" data-filter="app-protection">App Protection</button>
-                <button type="button" class="btn btn-outline-secondary quick-action-btn" data-filter="scripts">Scripts</button>
-            </div>
         </div>
 
         <div class="search-box">
@@ -408,19 +402,12 @@ function Export-HTMLReport {
             } else if (filter === 'all-users') {
                 tables.search('All Users').draw();
             } else if (filter === 'all-devices') {
-                tables.search('All Devices').draw();
+                // Use a custom search function to match exact "All Devices" text
+                tables.column(1).search('^All Devices$', true, false).draw();
             } else if (filter === 'group') {
                 tables.search('Group').draw();
             } else if (filter === 'none') {
                 tables.search('Not Assigned').draw();
-            } else if (filter === 'device-config') {
-                tables.search('Device Configuration').draw();
-            } else if (filter === 'compliance') {
-                tables.search('Compliance Policy').draw();
-            } else if (filter === 'app-protection') {
-                tables.search('App Protection').draw();
-            } else if (filter === 'scripts') {
-                tables.search('Script').draw();
             }
         });
 
@@ -798,4 +785,5 @@ function Export-HTMLReport {
     $htmlContent | Out-File -FilePath $FilePath -Encoding UTF8
     Write-Host "HTML report exported to: $FilePath" -ForegroundColor Green
 }
+
 
