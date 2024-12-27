@@ -402,8 +402,7 @@ function Export-HTMLReport {
             } else if (filter === 'all-users') {
                 tables.search('All Users').draw();
             } else if (filter === 'all-devices') {
-                // Use a custom search function to match exact "All Devices" text
-                tables.column(1).search('^All Devices$', true, false).draw();
+                tables.search('All Devices').draw();
             } else if (filter === 'group') {
                 tables.search('Group').draw();
             } else if (filter === 'none') {
