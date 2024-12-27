@@ -1,4 +1,4 @@
-# Function to get assignment information 2
+# Function to get assignment information 3
 function Get-AssignmentInfo {
     param (
         [Parameter(Mandatory = $true)]
@@ -15,14 +15,14 @@ function Get-AssignmentInfo {
 
     $assignment = $Assignments[0]  # Take the first assignment
     $type = switch ($assignment.Reason) {
-        "All Users" { "All Users"; break }
-        "All Devices" { "All Devices"; break }
+        "All Users"       { "All Users"; break }
+        "All Devices"     { "All Devices"; break }
         "Group Assignment" { "Group"; break }
-        default { "None" }
+        default           { "None" }
     }
 
     $target = switch ($type) {
-        "All Users" { "All Users" }
+        "All Users"   { "All Users" }
         "All Devices" { "All Devices" }
         "Group" {
             if ($assignment.GroupId) {
@@ -48,7 +48,7 @@ function Export-HTMLReport {
         [string]$FilePath
     )
 
-    # HTML template with placeholders for $tabHeaders, $tabContent, and summary stats
+    # HTML template with placeholders for $tabHeaders, $tabContent, summary stats, and chart
     $htmlTemplate = @"
 <!DOCTYPE html>
 <html lang="en">
@@ -174,7 +174,7 @@ function Export-HTMLReport {
         }
         .chart-container {
             margin: 20px 0;
-            padding: 15px;
+            padding: 20px;
             background: white;
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -244,13 +244,6 @@ function Export-HTMLReport {
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-        .chart-container {
-            margin: 20px 0;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         .search-box {
             margin: 20px 0;
@@ -330,6 +323,7 @@ function Export-HTMLReport {
                         </div>
                     </div>
                 </div>
+                <!-- Policy overview chart placeholder -->
             </div>
         </div>
 
@@ -369,62 +363,60 @@ function Export-HTMLReport {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script>
-        `$(document).ready(function() {
-        // Initialize DataTables with search and sort functionality
-        const tables = `$('.policy-table').DataTable({
-            dom: 'Blfrtip',
-            buttons: [
-                'copyHtml5',
-                'excelHtml5',
-                'csvHtml5'
-            ],
-            pageLength: 10,
-            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-            ordering: false, // Disable sorting
-            columnDefs: [
-                {
-                    targets: '_all',
-                    orderable: false // Disable sorting for all columns
-                }
-            ]
-        });
+        \$(document).ready(function() {
+            // Initialize DataTables
+            const tables = \$('.policy-table').DataTable({
+                dom: 'Blfrtip',
+                buttons: [
+                    'copyHtml5',
+                    'excelHtml5',
+                    'csvHtml5'
+                ],
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                ordering: false,
+                columnDefs: [
+                    {
+                        targets: '_all',
+                        orderable: false
+                    }
+                ]
+            });
 
-        // Quick Action Filtering
-        `$('.quick-action-btn').on('click', function() {
-            const filter = `$(this).data('filter');
-            `$('.quick-action-btn').removeClass('active');
-            `$(this).addClass('active');
-
-            tables.search('').draw(); // Clear existing search
-
-            tables.search('').columns(1).search('').draw(); // Clear all filters first
-            
-            if (filter === 'all') {
-                tables.search('').draw();
-            } else if (filter === 'all-users') {
-                tables.search('All Users').draw();
-            } else if (filter === 'all-devices') {
-                tables.columns(1).search('^All Devices$', true, false).draw();
-                setTimeout(() => {
+            // Quick Action Filtering
+            \$('.quick-action-btn').on('click', function() {
+                const filter = \$(this).data('filter');
+                \$('.quick-action-btn').removeClass('active');
+                \$(this).addClass('active');
+                tables.search('').draw(); 
+                tables.search('').columns(1).search('').draw(); 
+                
+                if (filter === 'all') {
+                    tables.search('').draw();
+                } else if (filter === 'all-users') {
+                    tables.search('All Users').draw();
+                } else if (filter === 'all-devices') {
                     tables.columns(1).search('^All Devices$', true, false).draw();
-                }, 100); // Double search to ensure proper filtering
-            } else if (filter === 'group') {
-                tables.search('Group').draw();
-            } else if (filter === 'none') {
-                tables.search('Not Assigned').draw();
-            }
-        });
+                    setTimeout(() => {
+                        tables.columns(1).search('^All Devices$', true, false).draw();
+                    }, 100);
+                } else if (filter === 'group') {
+                    tables.search('Group').draw();
+                } else if (filter === 'none') {
+                    tables.search('Not Assigned').draw();
+                }
+            });
 
-        `$('#groupSearch').on('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            tables.search(searchTerm).draw();
-        });
+            \$('#groupSearch').on('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                tables.search(searchTerm).draw();
+            });
 
-        // Show the first tab by default
-        const firstTab = document.querySelector('.nav-tabs .nav-link');
-        const firstPane = document.querySelector('.tab-pane');
-        if (firstTab) firstTab.classList.add('active');
-        if (firstPane) firstPane.classList.add('show', 'active');
+            // Show the first tab by default
+            const firstTab = document.querySelector('.nav-tabs .nav-link');
+            const firstPane = document.querySelector('.tab-pane');
+            if (firstTab) firstTab.classList.add('active');
+            if (firstPane) firstPane.classList.add('show', 'active');
         });
     </script>
 </body>
@@ -455,9 +447,6 @@ function Export-HTMLReport {
             Type           = "Device Configuration"
             AssignmentType = $assignmentInfo.Type
             AssignedTo     = $assignmentInfo.Target
-            ModifiedDate   = if ($config.lastModifiedDateTime) {
-                [DateTime]::Parse($config.lastModifiedDateTime).ToString("yyyy-MM-dd HH:mm")
-            } else { "N/A" }
         }
     }
 
@@ -500,9 +489,6 @@ function Export-HTMLReport {
             Type           = "Compliance Policy"
             AssignmentType = $assignmentInfo.Type
             AssignedTo     = $assignmentInfo.Target
-            ModifiedDate   = if ($policy.lastModifiedDateTime) {
-                [DateTime]::Parse($policy.lastModifiedDateTime).ToString("yyyy-MM-dd HH:mm")
-            } else { "N/A" }
         }
     }
 
@@ -511,9 +497,15 @@ function Export-HTMLReport {
     foreach ($policy in $appProtectionPolicies) {
         $policyType = $policy.'@odata.type'
         $assignmentsUri = switch ($policyType) {
-            "#microsoft.graph.androidManagedAppProtection" { "https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections('$($policy.id)')/assignments" }
-            "#microsoft.graph.iosManagedAppProtection" { "https://graph.microsoft.com/beta/deviceAppManagement/iosManagedAppProtections('$($policy.id)')/assignments" }
-            "#microsoft.graph.windowsManagedAppProtection" { "https://graph.microsoft.com/beta/deviceAppManagement/windowsManagedAppProtections('$($policy.id)')/assignments" }
+            "#microsoft.graph.androidManagedAppProtection" {
+                "https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections('$($policy.id)')/assignments"
+            }
+            "#microsoft.graph.iosManagedAppProtection" {
+                "https://graph.microsoft.com/beta/deviceAppManagement/iosManagedAppProtections('$($policy.id)')/assignments"
+            }
+            "#microsoft.graph.windowsManagedAppProtection" {
+                "https://graph.microsoft.com/beta/deviceAppManagement/windowsManagedAppProtections('$($policy.id)')/assignments"
+            }
             default { $null }
         }
 
@@ -524,7 +516,7 @@ function Export-HTMLReport {
                 foreach ($assignment in $assignmentResponse.value) {
                     $assignmentReason = $null
                     switch ($assignment.target.'@odata.type') {
-                        '#microsoft.graph.allLicensedUsersAssignmentTarget' { 
+                        '#microsoft.graph.allLicensedUsersAssignmentTarget' {
                             $assignmentReason = "All Users"
                         }
                         '#microsoft.graph.groupAssignmentTarget' {
@@ -558,12 +550,9 @@ function Export-HTMLReport {
                         ID             = $policy.id
                         Type           = "App Protection Policy"
                         AssignmentType = if ($assignmentSummary -match "All Users") { "All Users" }
-                        elseif ($assignmentSummary -match "Group") { "Group" }
-                        else { "None" }
+                                         elseif ($assignmentSummary -match "Group") { "Group" }
+                                         else { "None" }
                         AssignedTo     = $assignmentSummary
-                        ModifiedDate   = if ($policy.lastModifiedDateTime) {
-                            [DateTime]::Parse($policy.lastModifiedDateTime).ToString("yyyy-MM-dd HH:mm")
-                        } else { "N/A" }
                     }
                 }
             }
@@ -585,9 +574,6 @@ function Export-HTMLReport {
             Type           = "PowerShell Script"
             AssignmentType = $assignmentInfo.Type
             AssignedTo     = $assignmentInfo.Target
-            ModifiedDate   = if ($script.lastModifiedDateTime) {
-                [DateTime]::Parse($script.lastModifiedDateTime).ToString("yyyy-MM-dd HH:mm")
-            } else { "N/A" }
         }
     }
 
@@ -603,9 +589,6 @@ function Export-HTMLReport {
             Type           = "Proactive Remediation Script"
             AssignmentType = $assignmentInfo.Type
             AssignedTo     = $assignmentInfo.Target
-            ModifiedDate   = if ($script.lastModifiedDateTime) {
-                [DateTime]::Parse($script.lastModifiedDateTime).ToString("yyyy-MM-dd HH:mm")
-            } else { "N/A" }
         }
     }
 
@@ -632,10 +615,10 @@ function Export-HTMLReport {
     foreach ($category in $categories) {
         $items = $policies[$category.Key]
         $summaryStats.TotalPolicies += $items.Count
-        $summaryStats.AllUsers += ($items | Where-Object { $_.AssignmentType -eq "All Users" }).Count
-        $summaryStats.AllDevices += ($items | Where-Object { $_.AssignmentType -eq "All Devices" }).Count
+        $summaryStats.AllUsers      += ($items | Where-Object { $_.AssignmentType -eq "All Users" }).Count
+        $summaryStats.AllDevices    += ($items | Where-Object { $_.AssignmentType -eq "All Devices" }).Count
         $summaryStats.GroupAssigned += ($items | Where-Object { $_.AssignmentType -eq "Group" }).Count
-        $summaryStats.Unassigned += ($items | Where-Object { $_.AssignmentType -eq "None" }).Count
+        $summaryStats.Unassigned    += ($items | Where-Object { $_.AssignmentType -eq "None" }).Count
     }
 
     # Build dynamic tab headers and tab content
@@ -647,15 +630,15 @@ function Export-HTMLReport {
         $categoryId = $category.Key.ToLower()
 
         $tabHeaders += @"
-<li class="nav-item" role="presentation">
-    <button class="nav-link$(if($isActive -and $category.Key -ne 'all'){ ' active' } else { '' })"
-            id="$categoryId-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#$categoryId"
-            type="button"
-            role="tab"
-            aria-controls="$categoryId"
-            aria-selected="$(if($isActive -and $category.Key -ne 'all'){ 'true' } else { 'false' })">
+<li class='nav-item' role='presentation'>
+    <button class='nav-link$(if($isActive -and $category.Key -ne 'all'){ ' active' } else { '' })'
+            id='$categoryId-tab'
+            data-bs-toggle='tab'
+            data-bs-target='#$categoryId'
+            type='button'
+            role='tab'
+            aria-controls='$categoryId'
+            aria-selected='$(if($isActive -and $category.Key -ne 'all'){ 'true' } else { 'false' })'>
         $($category.Name)
     </button>
 </li>
@@ -667,33 +650,31 @@ function Export-HTMLReport {
                 if ($categoryPolicies) {
                     foreach ($p in $categoryPolicies) {
                         $badgeClass = switch ($p.AssignmentType) {
-                            'All Users' { 'badge-all-users' }
+                            'All Users'   { 'badge-all-users' }
                             'All Devices' { 'badge-all-devices' }
-                            'Group' { 'badge-group' }
-                            default { 'badge-none' }
+                            'Group'       { 'badge-group' }
+                            default       { 'badge-none' }
                         }
                         "<tr>
                             <td>$($p.Name)</td>
                             <td><span class='badge $badgeClass'>$($p.AssignmentType)</span></td>
                             <td>$($p.AssignedTo)</td>
-                            <td>$($p.ModifiedDate)</td>
                         </tr>"
                     }
                 }
             }
             $tabContent += @"
-<div class="tab-pane fade$(if($isActive){ ' show active' } else { '' })"
-     id="$categoryId"
-     role="tabpanel"
-     aria-labelledby="$categoryId-tab">
-    <div class="table-container">
-        <table class="table table-striped policy-table">
+<div class='tab-pane fade$(if($isActive){ ' show active' } else { '' })'
+     id='$categoryId'
+     role='tabpanel'
+     aria-labelledby='$categoryId-tab'>
+    <div class='table-container'>
+        <table class='table table-striped policy-table'>
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Assignment Type</th>
                     <th>Assigned To</th>
-                    <th>Last Modified</th>
                 </tr>
             </thead>
             <tbody>
@@ -707,25 +688,24 @@ function Export-HTMLReport {
         else {
             $tableRows = foreach ($p in $policies[$category.Key]) {
                 $badgeClass = switch ($p.AssignmentType) {
-                    'All Users' { 'badge-all-users' }
+                    'All Users'   { 'badge-all-users' }
                     'All Devices' { 'badge-all-devices' }
-                    'Group' { 'badge-group' }
-                    default { 'badge-none' }
+                    'Group'       { 'badge-group' }
+                    default       { 'badge-none' }
                 }
                 "<tr>
                     <td>$($p.Name)</td>
                     <td><span class='badge $badgeClass'>$($p.AssignmentType)</span></td>
                     <td>$($p.AssignedTo)</td>
-                    <td>$($p.ModifiedDate)</td>
                 </tr>"
             }
             $tabContent += @"
-<div class="tab-pane fade$(if($isActive){ ' show active' } else { '' })"
-     id="$categoryId"
-     role="tabpanel"
-     aria-labelledby="$categoryId-tab">
-    <div class="table-container">
-        <table class="table table-striped policy-table">
+<div class='tab-pane fade$(if($isActive){ ' show active' } else { '' })'
+     id='$categoryId'
+     role='tabpanel'
+     aria-labelledby='$categoryId-tab'>
+    <div class='table-container'>
+        <table class='table table-striped policy-table'>
             <thead>
                 <tr>
                     <th>Name</th>
@@ -745,69 +725,100 @@ function Export-HTMLReport {
 
     # Summary cards
     $summaryCards = @"
-<div class="col">
-    <div class="card text-center summary-card">
-        <div class="card-body">
-            <i class="fas fa-layer-group mb-3" style="font-size:2rem;color:#0d6efd;"></i>
-            <h5 class="card-title">Total Policies</h5>
-            <h3 class="card-text">$($summaryStats.TotalPolicies)</h3>
-            <p class="text-muted small">Total configured policies</p>
+<div class='col'>
+    <div class='card text-center summary-card'>
+        <div class='card-body'>
+            <i class='fas fa-layer-group mb-3' style='font-size:2rem;color:#0d6efd;'></i>
+            <h5 class='card-title'>Total Policies</h5>
+            <h3 class='card-text'>$($summaryStats.TotalPolicies)</h3>
+            <p class='text-muted small'>Total configured policies</p>
         </div>
     </div>
 </div>
-<div class="col">
-    <div class="card text-center summary-card">
-        <div class="card-body">
-            <i class="fas fa-users mb-3" style="font-size:2rem;color:#28a745;"></i>
-            <h5 class="card-title">All Users</h5>
-            <h3 class="card-text">$($summaryStats.AllUsers)</h3>
-            <p class="text-muted small">Assigned to all users</p>
+<div class='col'>
+    <div class='card text-center summary-card'>
+        <div class='card-body'>
+            <i class='fas fa-users mb-3' style='font-size:2rem;color:#28a745;'></i>
+            <h5 class='card-title'>All Users</h5>
+            <h3 class='card-text'>$($summaryStats.AllUsers)</h3>
+            <p class='text-muted small'>Assigned to all users</p>
         </div>
     </div>
 </div>
-<div class="col">
-    <div class="card text-center summary-card">
-        <div class="card-body">
-            <i class="fas fa-laptop mb-3" style="font-size:2rem;color:#17a2b8;"></i>
-            <h5 class="card-title">All Devices</h5>
-            <h3 class="card-text">$($summaryStats.AllDevices)</h3>
-            <p class="text-muted small">Assigned to all devices</p>
+<div class='col'>
+    <div class='card text-center summary-card'>
+        <div class='card-body'>
+            <i class='fas fa-laptop mb-3' style='font-size:2rem;color:#17a2b8;'></i>
+            <h5 class='card-title'>All Devices</h5>
+            <h3 class='card-text'>$($summaryStats.AllDevices)</h3>
+            <p class='text-muted small'>Assigned to all devices</p>
         </div>
     </div>
 </div>
-<div class="col">
-    <div class="card text-center summary-card">
-        <div class="card-body">
-            <i class="fas fa-object-group mb-3" style="font-size:2rem;color:#ffc107;"></i>
-            <h5 class="card-title">Group Assigned</h5>
-            <h3 class="card-text">$($summaryStats.GroupAssigned)</h3>
-            <p class="text-muted small">Assigned to specific groups</p>
+<div class='col'>
+    <div class='card text-center summary-card'>
+        <div class='card-body'>
+            <i class='fas fa-object-group mb-3' style='font-size:2rem;color:#ffc107;'></i>
+            <h5 class='card-title'>Group Assigned</h5>
+            <h3 class='card-text'>$($summaryStats.GroupAssigned)</h3>
+            <p class='text-muted small'>Assigned to specific groups</p>
         </div>
     </div>
 </div>
-<div class="col">
-    <div class="card text-center summary-card">
-        <div class="card-body">
-            <i class="fas fa-exclamation-triangle mb-3" style="font-size:2rem;color:#dc3545;"></i>
-            <h5 class="card-title">Unassigned</h5>
-            <h3 class="card-text">$($summaryStats.Unassigned)</h3>
-            <p class="text-muted small">Not assigned to any target</p>
+<div class='col'>
+    <div class='card text-center summary-card'>
+        <div class='card-body'>
+            <i class='fas fa-exclamation-triangle mb-3' style='font-size:2rem;color:#dc3545;'></i>
+            <h5 class='card-title'>Unassigned</h5>
+            <h3 class='card-text'>$($summaryStats.Unassigned)</h3>
+            <p class='text-muted small'>Not assigned to any target</p>
         </div>
     </div>
 </div>
+"@
+
+    # Insert chart container + Chart.js script
+    $chartBlock = @"
+<div class='chart-container'>
+    <canvas id='policyDistributionChart'></canvas>
+</div>
+<script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
+<script>
+    var ctx = document.getElementById('policyDistributionChart').getContext('2d');
+    var policyDistributionChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['All Users', 'All Devices', 'Group Assigned', 'Unassigned'],
+            datasets: [{
+                data: [$($summaryStats.AllUsers), $($summaryStats.AllDevices), $($summaryStats.GroupAssigned), $($summaryStats.Unassigned)],
+                backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#dc3545'],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                title: {
+                    display: true,
+                    text: 'Policy Assignment Distribution'
+                }
+            }
+        }
+    });
+</script>
 "@
 
     # Final HTML
     $htmlContent = $htmlTemplate `
         -replace '<!-- Tab headers will be inserted here -->', $tabHeaders `
         -replace '<!-- Tab content will be inserted here -->', $tabContent `
-        -replace '<!-- Summary stats will be inserted here -->', $summaryCards
+        -replace '<!-- Summary stats will be inserted here -->', $summaryCards `
+        -replace '<!-- Policy overview chart placeholder -->', $chartBlock
 
     # Output file
     $htmlContent | Out-File -FilePath $FilePath -Encoding UTF8
     Write-Host "HTML report exported to: $FilePath" -ForegroundColor Green
 }
-
-
-
-
