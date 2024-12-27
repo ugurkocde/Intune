@@ -289,6 +289,28 @@ function Export-HTMLReport {
             color: #6c757d;
             margin: 0;
         }
+        .quick-actions {
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .quick-action-btn {
+            margin: 5px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .quick-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .quick-action-btn.active {
+            background-color: #0d6efd;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -308,6 +330,23 @@ function Export-HTMLReport {
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <h5>Quick Actions</h5>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary quick-action-btn" data-filter="all">Show All</button>
+                <button type="button" class="btn btn-outline-success quick-action-btn" data-filter="all-users">All Users Assignments</button>
+                <button type="button" class="btn btn-outline-info quick-action-btn" data-filter="all-devices">All Devices Assignments</button>
+                <button type="button" class="btn btn-outline-warning quick-action-btn" data-filter="group">Group Assignments</button>
+                <button type="button" class="btn btn-outline-danger quick-action-btn" data-filter="none">Unassigned Policies</button>
+            </div>
+            <div class="btn-group mt-2" role="group">
+                <button type="button" class="btn btn-outline-secondary quick-action-btn" data-filter="device-config">Device Configurations</button>
+                <button type="button" class="btn btn-outline-secondary quick-action-btn" data-filter="compliance">Compliance Policies</button>
+                <button type="button" class="btn btn-outline-secondary quick-action-btn" data-filter="app-protection">App Protection</button>
+                <button type="button" class="btn btn-outline-secondary quick-action-btn" data-filter="scripts">Scripts</button>
             </div>
         </div>
 
@@ -337,35 +376,64 @@ function Export-HTMLReport {
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script>
         `$(document).ready(function() {
-            // Initialize DataTables with search and sort functionality
-            const tables = `$('.policy-table').DataTable({
-                dom: 'Blfrtip',
-                buttons: [
-                    'copyHtml5',
-                    'excelHtml5',
-                    'csvHtml5'
-                ],
-                pageLength: 10,
-                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-                ordering: false, // Disable sorting
-                columnDefs: [
-                    {
-                        targets: '_all',
-                        orderable: false // Disable sorting for all columns
-                    }
-                ]
-            });
+        // Initialize DataTables with search and sort functionality
+        const tables = `$('.policy-table').DataTable({
+            dom: 'Blfrtip',
+            buttons: [
+                'copyHtml5',
+                'excelHtml5',
+                'csvHtml5'
+            ],
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            ordering: false, // Disable sorting
+            columnDefs: [
+                {
+                    targets: '_all',
+                    orderable: false // Disable sorting for all columns
+                }
+            ]
+        });
 
-            `$('#groupSearch').on('keyup', function() {
-                const searchTerm = this.value.toLowerCase();
-                tables.search(searchTerm).draw();
-            });
+        // Quick Action Filtering
+        `$('.quick-action-btn').on('click', function() {
+            const filter = `$(this).data('filter');
+            `$('.quick-action-btn').removeClass('active');
+            `$(this).addClass('active');
 
-            // Show the first tab by default
-            const firstTab = document.querySelector('.nav-tabs .nav-link');
-            const firstPane = document.querySelector('.tab-pane');
-            if (firstTab) firstTab.classList.add('active');
-            if (firstPane) firstPane.classList.add('show', 'active');
+            tables.search('').draw(); // Clear existing search
+
+            if (filter === 'all') {
+                tables.search('').draw();
+            } else if (filter === 'all-users') {
+                tables.search('All Users').draw();
+            } else if (filter === 'all-devices') {
+                tables.search('All Devices').draw();
+            } else if (filter === 'group') {
+                tables.search('Group').draw();
+            } else if (filter === 'none') {
+                tables.search('Not Assigned').draw();
+            } else if (filter === 'device-config') {
+                tables.search('Device Configuration').draw();
+            } else if (filter === 'compliance') {
+                tables.search('Compliance Policy').draw();
+            } else if (filter === 'app-protection') {
+                tables.search('App Protection').draw();
+            } else if (filter === 'scripts') {
+                tables.search('Script').draw();
+            }
+        });
+
+        `$('#groupSearch').on('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            tables.search(searchTerm).draw();
+        });
+
+        // Show the first tab by default
+        const firstTab = document.querySelector('.nav-tabs .nav-link');
+        const firstPane = document.querySelector('.tab-pane');
+        if (firstTab) firstTab.classList.add('active');
+        if (firstPane) firstPane.classList.add('show', 'active');
         });
     </script>
 </body>
