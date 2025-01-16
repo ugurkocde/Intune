@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Script to check XProtect, XProtect Remediator, and MRT status
-# For use as Intune Custom Attribute
+# Description: Script to check XProtect, XProtect Remediator, and MRT status
+#
+# For more scripts and guides on macOS and Intune, visit: IntuneMacAdmins.com
 
 # Check for root privileges
 if [ "$EUID" -ne 0 ]; then

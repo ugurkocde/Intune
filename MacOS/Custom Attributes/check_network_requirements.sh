@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Script to check Apple security and software update services connectivity
-# For use as Intune Custom Attribute
+#
+# For more scripts and guides on macOS and Intune, visit: IntuneMacAdmins.com
 
 # Set up logging
 LOG_DIR="/Users/uk/Library/Logs/Microsoft/Custom Attributes"
