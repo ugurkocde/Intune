@@ -23,15 +23,19 @@ if [ ${#warrantyFiles[@]} -eq 0 ]; then
     exit 0
 fi
 
+# Initialize a variable for the final output
+finalOutput=""
+
 # Loop through each warranty file
 for file in "${warrantyFiles[@]}"; do
     expires=$(defaults read "$warrantyDir/$file" coverageEndDate)
 
-    if [ -z "$expires" ]; then
-        continue
-    else
+    if [ -n "$expires" ]; then
         # Convert epoch to a standard date format
         ACexpires=$(date -r $expires '+%d.%m.%Y')
-        echo "Coverage expires on: $ACexpires"
+        finalOutput+="Coverage expires on: $ACexpires\n"
     fi
 done
+
+# Output only the coverage expiration information
+echo -e "$finalOutput"
