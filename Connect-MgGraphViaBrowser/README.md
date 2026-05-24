@@ -15,25 +15,26 @@ https://github.com/microsoftgraph/msgraph-sdk-powershell/issues/3481#issuecommen
 
 ## What this script does
 
-`Connect-MgGraphViaBrowser.ps1` sidesteps the SDK's interactive flow entirely:
+`Connect-MgGraphViaBrowser.ps1` sidesteps the SDK's interactive flow entirely using pure PowerShell — no MSAL, no compiled C#, no embedded WebView, no WAM:
 
-1. Locates `Microsoft.Identity.Client.dll` (MSAL) from the local NuGet cache, `Az.Accounts`, or `Microsoft.Graph.Authentication`.
-2. Compiles a small inline C# helper that calls MSAL directly.
-3. Acquires an access token via the **system default browser** using a loopback redirect (`http://localhost`) — no WAM, no embedded WebView.
-4. Hands the resulting token to `Connect-MgGraph -AccessToken` so the rest of the Graph SDK works as normal.
-5. Runs a `GET /me` smoke test to confirm the connection.
+1. Generates an OAuth 2.0 PKCE challenge.
+2. Starts a local loopback `HttpListener` on a free port (or a port you specify).
+3. Opens the user's **system default browser** to the Microsoft identity platform `/authorize` endpoint.
+4. Captures the authorization code on the loopback redirect.
+5. Exchanges the code for an access + refresh token at the `/token` endpoint.
+6. Hands the access token to `Connect-MgGraph -AccessToken` so the rest of the Graph SDK works as normal.
+7. Caches the refresh token locally (DPAPI-encrypted on Windows, restricted-permission JSON on macOS/Linux) so subsequent sign-ins are silent until the refresh token expires.
 
 By default the script uses Microsoft's well-known PowerShell public client ID (`14d82eec-204b-4c2f-b7e8-296a70dab67e`), which already has `http://localhost` configured as a redirect URI, so no app registration is required.
 
 ## Requirements
 
 - PowerShell 7.0 or later
-- `Microsoft.Graph.Authentication` module installed
-- One of the following to provide MSAL: `Az.Accounts`, `Microsoft.Graph.Authentication`, or a restored `Microsoft.Identity.Client` NuGet package
+- `Microsoft.Graph.Authentication` module installed (used only for the final `Connect-MgGraph -AccessToken` handoff)
 
 ## Usage
 
-Run with defaults (multi-tenant, `User.Read` and `Directory.Read.All`):
+Run with defaults (multi-tenant, `User.Read`):
 
 ```powershell
 .\Connect-MgGraphViaBrowser.ps1
@@ -45,27 +46,68 @@ Restrict to a specific tenant:
 .\Connect-MgGraphViaBrowser.ps1 -TenantId "contoso.onmicrosoft.com"
 ```
 
-Request custom scopes:
+Request custom scopes (Intune example):
 
 ```powershell
-.\Connect-MgGraphViaBrowser.ps1 -Scopes 'User.Read.All','Group.Read.All'
+.\Connect-MgGraphViaBrowser.ps1 -Scopes `
+    'User.Read', `
+    'DeviceManagementConfiguration.Read.All', `
+    'DeviceManagementManagedDevices.Read.All'
 ```
 
-Use a custom app registration:
+Force the consent prompt (e.g. when adding new scopes):
 
 ```powershell
-.\Connect-MgGraphViaBrowser.ps1 -ClientId '00000000-0000-0000-0000-000000000000' -TenantId 'contoso.onmicrosoft.com'
+.\Connect-MgGraphViaBrowser.ps1 -Scopes 'NewScope.Read.All' -ForceConsent
 ```
 
-If you bring your own `ClientId`, make sure the app registration has `http://localhost` configured as a redirect URI for the **Mobile and desktop applications** platform.
+Skip the refresh-token cache for this call:
+
+```powershell
+.\Connect-MgGraphViaBrowser.ps1 -NoCache
+```
+
+## Bring your own app registration
+
+Pass `-ClientId` and `-TenantId` (and optionally `-RedirectPort`) to authenticate against your own multi-tenant or single-tenant app registration:
+
+```powershell
+.\Connect-MgGraphViaBrowser.ps1 `
+    -ClientId     '00000000-0000-0000-0000-000000000000' `
+    -TenantId     'contoso.onmicrosoft.com' `
+    -RedirectPort 1985
+```
+
+To prepare a BYO app registration:
+
+1. Register a new application in Entra ID.
+2. Under **Authentication → Add a platform → Mobile and desktop applications**, add `http://localhost` (or a specific `http://localhost:PORT`, in which case pass `-RedirectPort PORT`).
+3. Under **API permissions**, add the delegated Microsoft Graph scopes you need and grant admin consent if required.
+4. Pass `-ClientId <appId>` and `-TenantId <tenantId>` when calling the script.
 
 ## Parameters
 
 | Parameter | Description |
 |-----------|-------------|
-| `ClientId` | Optional. Custom app registration Client ID. Defaults to Microsoft's PowerShell public client. |
-| `TenantId` | Optional. Tenant to authenticate against. Defaults to the `common` endpoint. |
-| `Scopes`   | Microsoft Graph scopes to request. Defaults to `User.Read`, `Directory.Read.All`. |
+| `Scopes`        | Microsoft Graph delegated scopes. Bare names are auto-prefixed with the Graph resource URI; fully-qualified scopes and OIDC reserved scopes are passed through. `offline_access` is always added. Default: `User.Read`. |
+| `ClientId`      | Optional. Custom app registration Client ID. Defaults to Microsoft's PowerShell public client. |
+| `TenantId`      | Optional. Tenant ID or verified domain. Defaults to the `common` endpoint. |
+| `RedirectPort`  | Optional. Fixed loopback port for the redirect URI. Defaults to a random free port. |
+| `ForceConsent`  | Force the consent prompt (`prompt=consent`). |
+| `NoCache`       | Do not read or write the refresh-token cache for this call. |
+
+## Token cache
+
+Refresh tokens are persisted to:
+
+```
+%LOCALAPPDATA%\Connect-MgGraphViaBrowser\tokens.json     (Windows)
+~/.local/share/Connect-MgGraphViaBrowser/tokens.json     (macOS/Linux)
+```
+
+- On Windows the refresh token is encrypted with **DPAPI** (the same mechanism Edge, Chrome, and the Microsoft.Graph SDK use). The ciphertext is decryptable only by the same Windows user on the same machine.
+- On macOS/Linux the file is written with `chmod 600` and stored as plain JSON. This is weaker than DPAPI and may be tightened in a future version.
+- The cache is keyed by `ClientId|TenantId` so multiple identities and tenants coexist without conflicting.
 
 ## Roadmap
 
@@ -73,5 +115,4 @@ This script will be published as a proper PowerShell module so it can be install
 
 ## Credits
 
-The MSAL + loopback pattern is adapted from Mark Orr's Entra-PIM script:
-https://github.com/markorr321/Entra-PIM/blob/main/Entra-PIM.ps1
+Inspired by the OAuth Auth Code + PKCE loopback pattern used in [M365Permissions](https://github.com/jflieben/M365Permissions) by Jos Lieben, and Mark Orr's [Entra-PIM](https://github.com/markorr321/Entra-PIM) script.
